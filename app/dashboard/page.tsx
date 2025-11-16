@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import axios from 'axios'
-import { CreditCard, Video, LogOut, Loader2, Play, Download } from 'lucide-react'
+import { CreditCard, LogOut } from 'lucide-react'
 import VideoForm from '@/components/VideoForm'
 import VideoDashboard from '@/components/VideoDashboard'
 
@@ -30,8 +30,7 @@ export default function DashboardPage() {
     }
 
     fetchUser()
-    
-    // Check for Stripe success
+
     if (searchParams.get('success') === 'true') {
       setTimeout(() => {
         fetchUser()
@@ -70,10 +69,7 @@ export default function DashboardPage() {
         { packageIndex },
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      
-      if (response.data.url) {
-        window.location.href = response.data.url
-      }
+      if (response.data.url) window.location.href = response.data.url
     } catch (error: any) {
       alert(error.response?.data?.error || 'Failed to initiate purchase')
     } finally {
@@ -83,8 +79,8 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="w-8 h-8 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin" />
       </div>
     )
   }
@@ -99,30 +95,35 @@ export default function DashboardPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900 via-slate-900 to-black" />
+      <div className="absolute -top-1/2 -left-1/2 w-[1200px] h-[1200px] rounded-full bg-indigo-600/20 blur-3xl" />
+      <div className="absolute -bottom-1/2 -right-1/2 w-[1200px] h-[1200px] rounded-full bg-cyan-500/10 blur-3xl" />
+
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <header className="sticky top-0 z-10 backdrop-blur-xl bg-white/5 border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-800">Sora Video Generator</h1>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-lg">
-                <CreditCard className="w-5 h-5 text-blue-600" />
-                <span className="font-semibold text-gray-800">
-                  {user.creditsBalance} Credits
-                </span>
+            <h1 className="text-lg sm:text-xl font-semibold bg-gradient-to-r from-white via-cyan-200 to-indigo-200 bg-clip-text text-transparent">
+              Sora Video Generator
+            </h1>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 border border-white/10 text-white">
+                <CreditCard className="w-4 h-4 text-cyan-300" />
+                <span className="font-semibold">{user.creditsBalance} Credits</span>
               </div>
               <button
                 onClick={() => setShowPurchaseModal(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                className="hidden sm:inline-flex bg-gradient-to-r from-cyan-500 to-indigo-500 text-white px-4 py-2 rounded-lg text-sm hover:from-cyan-400 hover:to-indigo-400 transition-all shadow-lg shadow-cyan-500/20"
               >
                 Buy Credits
               </button>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
+                className="text-slate-300 hover:text-white text-sm flex items-center gap-2"
               >
-                <LogOut className="w-5 h-5" />
+                <LogOut className="w-4 h-4" />
                 Logout
               </button>
             </div>
@@ -134,14 +135,14 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Video Generation Form */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">Generate Video</h2>
+          <div className="backdrop-blur-xl bg-white/10 border border-white/10 rounded-2xl shadow-2xl p-6">
+            <h2 className="text-xl font-semibold text-white mb-4">Generate Video</h2>
             <VideoForm onSuccess={fetchUser} />
           </div>
 
           {/* Video Dashboard */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">Your Videos</h2>
+          <div className="backdrop-blur-xl bg-white/10 border border-white/10 rounded-2xl shadow-2xl p-6">
+            <h2 className="text-xl font-semibold text-white mb-4">Your Videos</h2>
             <VideoDashboard />
           </div>
         </div>
@@ -149,28 +150,28 @@ export default function DashboardPage() {
 
       {/* Purchase Modal */}
       {showPurchaseModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">Purchase Credits</h2>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="backdrop-blur-xl bg-white/10 border border-white/10 rounded-2xl shadow-2xl max-w-md w-full p-6 text-white">
+            <h2 className="text-2xl font-bold mb-4">Purchase Credits</h2>
             <div className="space-y-3 mb-6">
               {creditPackages.map((pkg, index) => (
                 <button
                   key={index}
                   onClick={() => handlePurchase(index)}
                   disabled={purchasing}
-                  className="w-full flex items-center justify-between p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all disabled:opacity-50"
+                  className="w-full flex items-center justify-between p-4 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20 transition-all disabled:opacity-50"
                 >
                   <div>
-                    <div className="font-semibold text-gray-800">{pkg.credits} Credits</div>
-                    <div className="text-sm text-gray-600">${pkg.price.toFixed(2)}</div>
+                    <div className="font-semibold">{pkg.credits} Credits</div>
+                    <div className="text-sm text-slate-300">${pkg.price.toFixed(2)}</div>
                   </div>
-                  <CreditCard className="w-5 h-5 text-gray-400" />
+                  <CreditCard className="w-5 h-5 text-cyan-300" />
                 </button>
               ))}
             </div>
             <button
               onClick={() => setShowPurchaseModal(false)}
-              className="w-full bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+              className="w-full bg-white/10 border border-white/10 text-white py-2 rounded-lg hover:bg-white/20 transition-colors"
             >
               Cancel
             </button>

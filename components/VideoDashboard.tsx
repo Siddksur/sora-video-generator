@@ -52,13 +52,13 @@ export default function VideoDashboard() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="w-5 h-5 text-green-500" />
+        return <CheckCircle className="w-5 h-5 text-emerald-400" />
       case 'failed':
-        return <XCircle className="w-5 h-5 text-red-500" />
+        return <XCircle className="w-5 h-5 text-rose-400" />
       case 'processing':
-        return <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
+        return <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
       default:
-        return <Clock className="w-5 h-5 text-yellow-500" />
+        return <Clock className="w-5 h-5 text-amber-400" />
     }
   }
 
@@ -104,14 +104,14 @@ export default function VideoDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+        <Loader2 className="w-6 h-6 animate-spin text-cyan-400" />
       </div>
     )
   }
 
   if (videos.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-slate-300">
         No videos yet. Generate your first video!
       </div>
     )
@@ -122,20 +122,20 @@ export default function VideoDashboard() {
       {videos.map((video) => (
         <div
           key={video.id}
-          className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+          className="rounded-xl p-4 border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
         >
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-800 mb-1 line-clamp-2">
+              <p className="text-sm font-medium text-white/90 mb-1 line-clamp-2">
                 {video.prompt}
               </p>
-              <div className="flex items-center gap-2 text-xs text-gray-500">
+              <div className="flex items-center gap-2 text-xs text-slate-300">
                 {getStatusIcon(video.status)}
                 <span>{getStatusText(video)}</span>
                 <span>•</span>
                 <span>{new Date(video.createdAt).toLocaleDateString()}</span>
                 {isStale(video) && (
-                  <span className="ml-2 inline-flex items-center gap-1 text-amber-600">
+                  <span className="ml-2 inline-flex items-center gap-1 text-amber-400">
                     <AlertTriangle className="w-4 h-4" />
                     No update for over 1 hour
                   </span>
@@ -147,7 +147,7 @@ export default function VideoDashboard() {
                 <button
                   onClick={() => handleDelete(video.id)}
                   disabled={deletingId === video.id}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-700 text-sm rounded-lg border border-red-200 hover:bg-red-100 disabled:opacity-50"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 text-rose-200 text-sm rounded-lg border border-rose-500/30 hover:bg-rose-500/20 disabled:opacity-50"
                 >
                   <Trash2 className="w-4 h-4" />
                   {deletingId === video.id ? 'Deleting...' : 'Delete'}
@@ -172,14 +172,14 @@ export default function VideoDashboard() {
                   href={video.videoUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-indigo-500 text-white text-sm rounded-lg hover:from-cyan-400 hover:to-indigo-400 transition-colors"
                 >
                   <Play className="w-4 h-4" />
                   Open Video
                 </a>
                 <button
                   onClick={() => handleDownload(video.videoUrl!, video.prompt)}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-gray-200 text-gray-800 text-sm rounded-lg hover:bg-gray-300 transition-colors"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/10 text-white text-sm rounded-lg hover:bg-white/20 transition-colors"
                 >
                   <Download className="w-4 h-4" />
                   Download
@@ -189,8 +189,8 @@ export default function VideoDashboard() {
           )}
 
           {(video.status === 'pending' || video.status === 'processing') && (
-            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <div className="flex items-center gap-2 text-sm text-blue-700">
+            <div className="mt-4 bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-3">
+              <div className="flex items-center gap-2 text-sm text-cyan-200">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>Your video is being generated. This may take 2-4 minutes...</span>
               </div>

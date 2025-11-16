@@ -44,9 +44,9 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 text-white">
       <div>
-        <label htmlFor="prompt" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="prompt" className="block text-sm font-medium text-slate-200 mb-2">
           Video Prompt *
         </label>
         <textarea
@@ -55,14 +55,14 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
           onChange={(e) => setPrompt(e.target.value)}
           required
           rows={4}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
+          className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
           placeholder="Just write a simple prompt, and our AI will generate a professional prompt for you!"
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="requestedEmail" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="requestedEmail" className="block text-sm font-medium text-slate-200 mb-2">
             Notification Email (Optional)
           </label>
           <input
@@ -70,20 +70,20 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
             type="email"
             value={requestedEmail}
             onChange={(e) => setRequestedEmail(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
+            className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
             placeholder="Email to notify when ready"
           />
         </div>
 
         <div>
-          <label htmlFor="aspectRatio" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="aspectRatio" className="block text-sm font-medium text-slate-200 mb-2">
             Aspect Ratio
           </label>
           <select
             id="aspectRatio"
             value={aspectRatio}
             onChange={(e) => setAspectRatio(e.target.value as 'portrait' | 'landscape')}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
+            className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
           >
             <option value="landscape">Landscape (16:9)</option>
             <option value="portrait">Portrait (9:16)</option>
@@ -92,13 +92,13 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+        <div className="bg-rose-500/10 border border-rose-500/30 text-rose-200 px-4 py-3 rounded-lg text-sm">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+        <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-200 px-4 py-3 rounded-lg text-sm">
           Video generation started! You'll be notified when it's ready.
         </div>
       )}
@@ -106,7 +106,7 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+        className="w-full bg-gradient-to-r from-cyan-500 to-indigo-500 text-white py-2 px-4 rounded-lg font-medium hover:from-cyan-400 hover:to-indigo-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-cyan-500/20"
       >
         {loading ? (
           <>
