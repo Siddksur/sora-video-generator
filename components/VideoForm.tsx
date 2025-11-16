@@ -129,7 +129,7 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
 
       {enhancedPrompt && (
         <div>
-          <label htmlFor="enhancedPrompt" className="block text-sm font-medium text-slate-200 mb-2">
+          <label htmlFor="enhancedPrompt" className="block text-sm font-medium text-emerald-300 mb-2">
             AI Enhanced Prompt (Cinematic)
           </label>
           <textarea
@@ -137,10 +137,10 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
             value={enhancedPrompt}
             onChange={(e) => setEnhancedPrompt(e.target.value)}
             rows={4}
-            className="w-full px-4 py-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            className="w-full px-4 py-3 rounded-lg bg-emerald-500/20 border-2 border-emerald-400/50 text-white placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400"
             placeholder="AI-enhanced prompt will appear here..."
           />
-          <p className="mt-1 text-xs text-emerald-300">This enhanced prompt will be used for video generation</p>
+          <p className="mt-1 text-xs text-emerald-200">This enhanced prompt will be used for video generation</p>
         </div>
       )}
 
