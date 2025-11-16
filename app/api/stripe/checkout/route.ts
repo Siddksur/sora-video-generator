@@ -25,6 +25,20 @@ export async function POST(request: NextRequest) {
 
     const creditPackage = CREDIT_PACKAGES[packageIndex]
 
+    // Determine base URL for redirects
+    const envBaseUrl = process.env.NEXT_PUBLIC_APP_URL?.trim()
+    const host = request.headers.get('host') || ''
+    const inferredBase = host ? `${process.env.NODE_ENV === 'production' ? 'https' : 'http'}://${host}` : ''
+    const baseUrl = envBaseUrl || inferredBase
+
+    if (!baseUrl || !/^https?:\/\//i.test(baseUrl)) {
+      console.error('Invalid or missing base URL for Stripe redirects', { envBaseUrl, host })
+      return NextResponse.json(
+        { error: 'Server configuration error (base URL)' },
+        { status: 500 }
+      )
+    }
+
     // Create transaction record
     const transaction = await db.transaction.create({
       data: {
@@ -52,8 +66,8 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?canceled=true`,
+      success_url: `${baseUrl}/dashboard?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/dashboard?canceled=true`,
       metadata: {
         userId: user.id,
         transactionId: transaction.id,
