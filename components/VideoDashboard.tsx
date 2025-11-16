@@ -18,6 +18,7 @@ export default function VideoDashboard() {
   const [videos, setVideos] = useState<Video[]>([])
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [expandedPrompts, setExpandedPrompts] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     fetchVideos()
@@ -86,7 +87,7 @@ export default function VideoDashboard() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this request? This cannot be undone.')) return
+    if (!confirm('Delete this video? This cannot be undone.')) return
     setDeletingId(id)
     try {
       const token = localStorage.getItem('token')
@@ -94,11 +95,33 @@ export default function VideoDashboard() {
         headers: { Authorization: `Bearer ${token}` }
       })
       setVideos(videos.filter(v => v.id !== id))
+      // Remove from expanded prompts if it was expanded
+      setExpandedPrompts(prev => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
     } catch (err) {
-      alert('Failed to delete request')
+      alert('Failed to delete video')
     } finally {
       setDeletingId(null)
     }
+  }
+
+  const togglePromptExpansion = (videoId: string) => {
+    setExpandedPrompts(prev => {
+      const next = new Set(prev)
+      if (next.has(videoId)) {
+        next.delete(videoId)
+      } else {
+        next.add(videoId)
+      }
+      return next
+    })
+  }
+
+  const shouldTruncatePrompt = (prompt: string) => {
+    return prompt.length > 100
   }
 
   if (loading) {
@@ -126,9 +149,19 @@ export default function VideoDashboard() {
         >
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1">
-              <p className="text-sm font-medium text-white/90 mb-1 line-clamp-2">
-                {video.prompt}
-              </p>
+              <div className="mb-1">
+                <p className={`text-sm font-medium text-white/90 ${!expandedPrompts.has(video.id) && shouldTruncatePrompt(video.prompt) ? 'line-clamp-2' : ''}`}>
+                  {video.prompt}
+                </p>
+                {shouldTruncatePrompt(video.prompt) && (
+                  <button
+                    onClick={() => togglePromptExpansion(video.id)}
+                    className="text-xs text-cyan-400 hover:text-cyan-300 mt-1 transition-colors"
+                  >
+                    {expandedPrompts.has(video.id) ? 'See less' : 'See more'}
+                  </button>
+                )}
+              </div>
               <div className="flex items-center gap-2 text-xs text-slate-300">
                 {getStatusIcon(video.status)}
                 <span>{getStatusText(video)}</span>
@@ -143,16 +176,14 @@ export default function VideoDashboard() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {(video.status !== 'completed') && (
-                <button
-                  onClick={() => handleDelete(video.id)}
-                  disabled={deletingId === video.id}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 text-rose-200 text-sm rounded-lg border border-rose-500/30 hover:bg-rose-500/20 disabled:opacity-50"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  {deletingId === video.id ? 'Deleting...' : 'Delete'}
-                </button>
-              )}
+              <button
+                onClick={() => handleDelete(video.id)}
+                disabled={deletingId === video.id}
+                className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 text-rose-200 text-sm rounded-lg border border-rose-500/30 hover:bg-rose-500/20 disabled:opacity-50"
+              >
+                <Trash2 className="w-4 h-4" />
+                {deletingId === video.id ? 'Deleting...' : 'Delete'}
+              </button>
             </div>
           </div>
 
