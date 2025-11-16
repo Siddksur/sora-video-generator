@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { Loader2 } from 'lucide-react'
 
@@ -10,11 +10,22 @@ interface VideoFormProps {
 
 export default function VideoForm({ onSuccess }: VideoFormProps) {
   const [prompt, setPrompt] = useState('')
-  const [requestedEmail, setRequestedEmail] = useState('')
   const [aspectRatio, setAspectRatio] = useState<'portrait' | 'landscape'>('landscape')
+  const [notifyChecked, setNotifyChecked] = useState(false)
+  const [userEmail, setUserEmail] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('user')
+      if (raw) {
+        const u = JSON.parse(raw)
+        if (u?.email) setUserEmail(u.email)
+      }
+    } catch {}
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,13 +36,17 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
     try {
       const token = localStorage.getItem('token')
       await axios.post('/api/videos/generate', 
-        { prompt, requestedEmail, aspectRatio },
+        { 
+          prompt, 
+          aspectRatio, 
+          requestedEmail: notifyChecked ? userEmail : undefined 
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       )
 
       setSuccess(true)
       setPrompt('')
-      setRequestedEmail('')
+      setNotifyChecked(false)
       setAspectRatio('landscape')
       onSuccess()
       
@@ -61,18 +76,17 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="requestedEmail" className="block text-sm font-medium text-slate-200 mb-2">
-            Notification Email (Optional)
-          </label>
+        <div className="flex items-center gap-3">
           <input
-            id="requestedEmail"
-            type="email"
-            value={requestedEmail}
-            onChange={(e) => setRequestedEmail(e.target.value)}
-            className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-            placeholder="Email to notify when ready"
+            id="notify"
+            type="checkbox"
+            checked={notifyChecked}
+            onChange={(e) => setNotifyChecked(e.target.checked)}
+            className="h-4 w-4 rounded border-white/20 bg-white/10 text-cyan-400 focus:ring-cyan-400"
           />
+          <label htmlFor="notify" className="text-sm text-slate-200">
+            Notify at <span className="font-medium text-white">{userEmail || 'your email on file'}</span>
+          </label>
         </div>
 
         <div>
