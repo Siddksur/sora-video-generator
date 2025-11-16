@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromRequest } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { VIDEO_COST_CREDITS } from '@/lib/stripe'
+import { getVideoCostCredits } from '@/lib/stripe'
 import axios from 'axios'
 
 const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL!
@@ -17,18 +17,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (user.creditsBalance < VIDEO_COST_CREDITS) {
-      return NextResponse.json(
-        { error: 'Insufficient credits. Please purchase more credits.' },
-        { status: 400 }
-      )
-    }
-
-    const { prompt, additionalDetails, requestedEmail, aspectRatio } = await request.json()
+    const { prompt, additionalDetails, requestedEmail, aspectRatio, model } = await request.json()
 
     if (!prompt) {
       return NextResponse.json(
         { error: 'Prompt is required' },
+        { status: 400 }
+      )
+    }
+
+    // Calculate credit cost based on model
+    const creditCost = getVideoCostCredits(model)
+
+    if (user.creditsBalance < creditCost) {
+      return NextResponse.json(
+        { error: 'Insufficient credits. Please purchase more credits.' },
         { status: 400 }
       )
     }
@@ -48,7 +51,7 @@ export async function POST(request: NextRequest) {
       where: { id: user.id },
       data: {
         creditsBalance: {
-          decrement: VIDEO_COST_CREDITS
+          decrement: creditCost
         }
       }
     })
@@ -57,9 +60,9 @@ export async function POST(request: NextRequest) {
     await db.creditHistory.create({
       data: {
         userId: user.id,
-        amount: -VIDEO_COST_CREDITS,
+        amount: -creditCost,
         transactionType: 'usage',
-        description: `Used ${VIDEO_COST_CREDITS} credits for video generation`
+        description: `Used ${creditCost} credits for video generation (${model || 'SORA 2'})`
       }
     })
 
@@ -76,7 +79,8 @@ export async function POST(request: NextRequest) {
         callback_url: callbackUrl,
         // optional fields for your workflow
         requested_email: requestedEmail || user.email,
-        aspect_ratio: aspectRatio || 'landscape'
+        aspect_ratio: aspectRatio || 'landscape',
+        model: model || 'SORA 2'
       })
     } catch (error) {
       console.error('Error calling n8n webhook:', error)

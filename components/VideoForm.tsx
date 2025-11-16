@@ -12,6 +12,7 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
   const [prompt, setPrompt] = useState('')
   const [enhancedPrompt, setEnhancedPrompt] = useState('')
   const [aspectRatio, setAspectRatio] = useState<'portrait' | 'landscape'>('landscape')
+  const [model, setModel] = useState<'SORA 2' | 'SORA 2 Pro'>('SORA 2')
   const [notifyChecked, setNotifyChecked] = useState(false)
   const [userEmail, setUserEmail] = useState<string>('')
   const [loading, setLoading] = useState(false)
@@ -71,7 +72,8 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
       await axios.post('/api/videos/generate', 
         { 
           prompt: finalPrompt, 
-          aspectRatio, 
+          aspectRatio,
+          model,
           requestedEmail: notifyChecked ? userEmail : undefined 
         },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -82,6 +84,7 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
       setEnhancedPrompt('')
       setNotifyChecked(false)
       setAspectRatio('landscape')
+      setModel('SORA 2')
       onSuccess()
       
       setTimeout(() => setSuccess(false), 3000)
@@ -147,19 +150,6 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="flex items-center gap-3">
-          <input
-            id="notify"
-            type="checkbox"
-            checked={notifyChecked}
-            onChange={(e) => setNotifyChecked(e.target.checked)}
-            className="h-4 w-4 rounded border-white/20 bg-white/10 text-cyan-400 focus:ring-cyan-400"
-          />
-          <label htmlFor="notify" className="text-sm text-slate-200">
-            Notify at <span className="font-medium text-white">{userEmail || 'your email on file'}</span>
-          </label>
-        </div>
-
         <div>
           <label htmlFor="aspectRatio" className="block text-sm font-medium text-slate-200 mb-2">
             Aspect Ratio
@@ -174,6 +164,34 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
             <option value="portrait">Portrait (9:16)</option>
           </select>
         </div>
+
+        <div>
+          <label htmlFor="model" className="block text-sm font-medium text-slate-200 mb-2">
+            Model
+          </label>
+          <select
+            id="model"
+            value={model}
+            onChange={(e) => setModel(e.target.value as 'SORA 2' | 'SORA 2 Pro')}
+            className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          >
+            <option value="SORA 2">SORA 2 (5 Credits)</option>
+            <option value="SORA 2 Pro">SORA 2 Pro (20 Credits)</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <input
+          id="notify"
+          type="checkbox"
+          checked={notifyChecked}
+          onChange={(e) => setNotifyChecked(e.target.checked)}
+          className="h-4 w-4 rounded border-white/20 bg-white/10 text-cyan-400 focus:ring-cyan-400"
+        />
+        <label htmlFor="notify" className="text-sm text-slate-200">
+          Notify at <span className="font-medium text-white">{userEmail || 'your email on file'}</span>
+        </label>
       </div>
 
       {error && (
@@ -199,7 +217,7 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
             Generating...
           </>
         ) : (
-          'Generate Video (5 Credits)'
+          `Generate Video (${model === 'SORA 2' ? '5' : '20'} Credits)`
         )}
       </button>
     </form>
