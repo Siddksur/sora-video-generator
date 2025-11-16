@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String        @id @default(cuid())
+  username      String        @unique
+  email         String        @unique
+  passwordHash  String        @map("password_hash")
+  creditsBalance Int          @default(0) @map("credits_balance")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  transactions  Transaction[]
+  videos        Video[]
+  creditHistory CreditHistory[]
+
+  @@map("users")
+}
+
+model Transaction {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  amount          Float
+  creditsPurchased Int     @map("credits_purchased")
+  stripeSessionId String? @unique @map("stripe_session_id")
+  status          String   @default("pending") // pending, completed, failed
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
+}
+
+model Video {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  prompt          String
+  additionalDetails String? @map("additional_details")
+  videoUrl        String?  @map("video_url")
+  status          String   @default("pending") // pending, processing, completed, failed
+  n8nTaskId       String?  @map("n8n_task_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  completedAt     DateTime? @map("completed_at")
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("videos")
+}
+
+model CreditHistory {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  amount          Int      // positive for purchases, negative for usage
+  transactionType String   @map("transaction_type") // purchase, usage
+  description     String
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("credit_history")
+}
+
