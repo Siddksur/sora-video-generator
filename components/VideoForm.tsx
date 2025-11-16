@@ -10,7 +10,6 @@ interface VideoFormProps {
 
 export default function VideoForm({ onSuccess }: VideoFormProps) {
   const [prompt, setPrompt] = useState('')
-  const [additionalDetails, setAdditionalDetails] = useState('')
   const [requestedEmail, setRequestedEmail] = useState('')
   const [aspectRatio, setAspectRatio] = useState<'portrait' | 'landscape'>('landscape')
   const [loading, setLoading] = useState(false)
@@ -26,13 +25,12 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
     try {
       const token = localStorage.getItem('token')
       await axios.post('/api/videos/generate', 
-        { prompt, additionalDetails, requestedEmail, aspectRatio },
+        { prompt, requestedEmail, aspectRatio },
         { headers: { Authorization: `Bearer ${token}` } }
       )
 
       setSuccess(true)
       setPrompt('')
-      setAdditionalDetails('')
       setRequestedEmail('')
       setAspectRatio('landscape')
       onSuccess()
@@ -58,21 +56,7 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
           required
           rows={4}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
-          placeholder="Describe the video you want to generate..."
-        />
-      </div>
-
-      <div>
-        <label htmlFor="additionalDetails" className="block text-sm font-medium text-gray-700 mb-2">
-          Additional Details (Optional)
-        </label>
-        <textarea
-          id="additionalDetails"
-          value={additionalDetails}
-          onChange={(e) => setAdditionalDetails(e.target.value)}
-          rows={3}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
-          placeholder="Any additional information or requirements..."
+          placeholder="Just write a simple prompt, and our AI will generate a professional prompt for you!"
         />
       </div>
 
