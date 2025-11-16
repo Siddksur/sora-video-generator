@@ -52,11 +52,11 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Animated gradient background */}
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900 via-slate-900 to-black" />
-      <div className="absolute -top-1/2 -left-1/2 w-[1200px] h-[1200px] rounded-full bg-indigo-600/20 blur-3xl" />
-      <div className="absolute -bottom-1/2 -right-1/2 w-[1200px] h-[1200px] rounded-full bg-cyan-500/10 blur-3xl" />
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900 via-slate-900 to-black" />
+      <div className="pointer-events-none absolute -top-1/2 -left-1/2 w-[1200px] h-[1200px] rounded-full bg-indigo-600/20 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-1/2 -right-1/2 w-[1200px] h-[1200px] rounded-full bg-cyan-500/10 blur-3xl" />
 
-      <div className="min-h-screen flex items-center justify-center p-6">
+      <div className="min-h-screen flex items-center justify-center p-6 relative z-10">
         <div className="w-full max-w-md backdrop-blur-xl bg-white/10 border border-white/10 rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-6 flex items-center justify-center gap-3">
             <img src="https://statics.myclickfunnels.com/workspace/JGrmMP/image/16250088/file/f56b74313c1d6a8f3c0774060784aa1d.png" alt="LeadCallr AI" className="h-8 w-8 rounded" />
