@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import { Loader2, Play, Download, Clock, CheckCircle, XCircle } from 'lucide-react'
+import { Loader2, Play, Download, Clock, CheckCircle, XCircle, Trash2, AlertTriangle } from 'lucide-react'
 
 interface Video {
   id: string
@@ -17,19 +17,14 @@ interface Video {
 export default function VideoDashboard() {
   const [videos, setVideos] = useState<Video[]>([])
   const [loading, setLoading] = useState(true)
-  const [polling, setPolling] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchVideos()
-    
-    // Poll for updates every 10 seconds if there are pending videos
     const interval = setInterval(() => {
       const hasPending = videos.some(v => v.status === 'pending' || v.status === 'processing')
-      if (hasPending) {
-        fetchVideos()
-      }
+      if (hasPending) fetchVideos()
     }, 10000)
-
     return () => clearInterval(interval)
   }, [videos.length])
 
@@ -47,6 +42,13 @@ export default function VideoDashboard() {
     }
   }
 
+  const isStale = (video: Video) => {
+    if (video.status === 'completed' || video.status === 'failed') return false
+    const created = new Date(video.createdAt).getTime()
+    const ageMs = Date.now() - created
+    return ageMs > 60 * 60 * 1000 // > 1 hour
+  }
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
@@ -60,8 +62,9 @@ export default function VideoDashboard() {
     }
   }
 
-  const getStatusText = (status: string) => {
-    switch (status) {
+  const getStatusText = (video: Video) => {
+    if (isStale(video)) return 'Stale (no update > 1h)'
+    switch (video.status) {
       case 'completed':
         return 'Completed'
       case 'failed':
@@ -80,6 +83,22 @@ export default function VideoDashboard() {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this request? This cannot be undone.')) return
+    setDeletingId(id)
+    try {
+      const token = localStorage.getItem('token')
+      await axios.delete(`/api/videos/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      setVideos(videos.filter(v => v.id !== id))
+    } catch (err) {
+      alert('Failed to delete request')
+    } finally {
+      setDeletingId(null)
+    }
   }
 
   if (loading) {
@@ -112,10 +131,28 @@ export default function VideoDashboard() {
               </p>
               <div className="flex items-center gap-2 text-xs text-gray-500">
                 {getStatusIcon(video.status)}
-                <span>{getStatusText(video.status)}</span>
+                <span>{getStatusText(video)}</span>
                 <span>•</span>
                 <span>{new Date(video.createdAt).toLocaleDateString()}</span>
+                {isStale(video) && (
+                  <span className="ml-2 inline-flex items-center gap-1 text-amber-600">
+                    <AlertTriangle className="w-4 h-4" />
+                    No update for over 1 hour
+                  </span>
+                )}
               </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {(video.status !== 'completed') && (
+                <button
+                  onClick={() => handleDelete(video.id)}
+                  disabled={deletingId === video.id}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-700 text-sm rounded-lg border border-red-200 hover:bg-red-100 disabled:opacity-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  {deletingId === video.id ? 'Deleting...' : 'Delete'}
+                </button>
+              )}
             </div>
           </div>
 

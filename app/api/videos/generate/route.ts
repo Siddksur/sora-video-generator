@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { prompt, additionalDetails } = await request.json()
+    const { prompt, additionalDetails, requestedEmail, aspectRatio } = await request.json()
 
     if (!prompt) {
       return NextResponse.json(
@@ -73,7 +73,10 @@ export async function POST(request: NextRequest) {
         user_email: user.email,
         video_prompt: prompt,
         additional_details: additionalDetails || '',
-        callback_url: callbackUrl
+        callback_url: callbackUrl,
+        // optional fields for your workflow
+        requested_email: requestedEmail || user.email,
+        aspect_ratio: aspectRatio || 'landscape'
       })
     } catch (error) {
       console.error('Error calling n8n webhook:', error)
