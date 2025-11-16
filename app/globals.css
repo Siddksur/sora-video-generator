@@ -26,9 +26,9 @@ body {
     rgb(var(--background-start-rgb));
 }
 
-/* Ensure form inputs have visible text */
-input, textarea {
-  color: rgb(17, 24, 39) !important; /* gray-900 */
+/* Ensure form inputs have visible text - only apply to inputs without explicit color styling */
+input:not([style*="color"]), textarea:not([style*="color"]) {
+  color: rgb(17, 24, 39); /* gray-900 */
 }
 
 input::placeholder, textarea::placeholder {

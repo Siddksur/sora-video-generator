@@ -104,6 +104,7 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
           onChange={(e) => setPrompt(e.target.value)}
           required
           rows={4}
+          style={{ color: '#ffffff' }}
           className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
           placeholder="Just write a simple prompt, and our AI will generate a professional prompt for you!"
         />
@@ -137,6 +138,7 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
             value={enhancedPrompt}
             onChange={(e) => setEnhancedPrompt(e.target.value)}
             rows={4}
+            style={{ color: '#ffffff' }}
             className="w-full px-4 py-3 rounded-lg bg-emerald-500/20 border-2 border-emerald-400/50 text-white placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400"
             placeholder="AI-enhanced prompt will appear here..."
           />

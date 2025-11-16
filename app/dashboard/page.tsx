@@ -139,7 +139,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Video Generation Form */}
           <div className="backdrop-blur-xl bg-white/10 border border-white/10 rounded-2xl shadow-2xl p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Generate Video</h2>
+            <h2 className="text-xl font-semibold text-white mb-4">Generate SORA 2 Video</h2>
             <VideoForm onSuccess={fetchUser} />
           </div>
 
