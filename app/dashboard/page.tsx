@@ -105,9 +105,12 @@ export default function DashboardPage() {
       <header className="sticky top-0 z-10 backdrop-blur-xl bg-white/5 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between">
-            <h1 className="text-lg sm:text-xl font-semibold bg-gradient-to-r from-white via-cyan-200 to-indigo-200 bg-clip-text text-transparent">
-              Sora Video Generator
-            </h1>
+            <div className="flex items-center gap-3">
+              <img src="https://statics.myclickfunnels.com/workspace/JGrmMP/image/16250088/file/f56b74313c1d6a8f3c0774060784aa1d.png" alt="LeadCallr AI" className="h-7 w-7 rounded" />
+              <h1 className="text-lg sm:text-xl font-semibold bg-gradient-to-r from-white via-cyan-200 to-indigo-200 bg-clip-text text-transparent">
+                LeadCallr AI
+              </h1>
+            </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 border border-white/10 text-white">
                 <CreditCard className="w-4 h-4 text-cyan-300" />

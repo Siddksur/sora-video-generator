@@ -58,12 +58,13 @@ export default function AuthPage() {
 
       <div className="min-h-screen flex items-center justify-center p-6">
         <div className="w-full max-w-md backdrop-blur-xl bg-white/10 border border-white/10 rounded-2xl shadow-2xl p-8">
-          <div className="text-center mb-6">
+          <div className="text-center mb-6 flex items-center justify-center gap-3">
+            <img src="https://statics.myclickfunnels.com/workspace/JGrmMP/image/16250088/file/f56b74313c1d6a8f3c0774060784aa1d.png" alt="LeadCallr AI" className="h-8 w-8 rounded" />
             <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-cyan-200 to-indigo-200 bg-clip-text text-transparent">
-              Sora Video Generator
+              LeadCallr AI
             </h1>
-            <p className="text-slate-300 text-sm mt-1">Generate AI videos with credits</p>
           </div>
+          <p className="text-slate-300 text-sm mt-1 text-center mb-4">Sora Video Generator</p>
 
           {/* Mode toggle */}
           <div className="grid grid-cols-2 mb-6 rounded-lg overflow-hidden border border-white/10">
