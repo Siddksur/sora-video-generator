@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import { Loader2, Play, Download, Clock, CheckCircle, XCircle, Trash2, AlertTriangle } from 'lucide-react'
+import { Loader2, Download, Clock, CheckCircle, XCircle, Trash2, AlertTriangle } from 'lucide-react'
 
 interface Video {
   id: string
@@ -169,20 +169,19 @@ export default function VideoDashboard() {
               </div>
               <div className="flex gap-2">
                 <a
-                  href={video.videoUrl}
+                  href="https://business.facebook.com/adsmanager"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-indigo-500 text-white text-sm rounded-lg hover:from-cyan-400 hover:to-indigo-400 transition-colors"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  <Play className="w-4 h-4" />
-                  Open Video
+                  Ads Manager
                 </a>
                 <button
                   onClick={() => handleDownload(video.videoUrl!, video.prompt)}
                   className="flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/10 text-white text-sm rounded-lg hover:bg-white/20 transition-colors"
                 >
                   <Download className="w-4 h-4" />
-                  Download
+                  Download Video
                 </button>
               </div>
             </div>
