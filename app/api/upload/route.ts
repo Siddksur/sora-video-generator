@@ -60,9 +60,9 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes)
     await writeFile(filepath, buffer)
 
-    // Generate public URL
+    // Generate public URL - use API route to serve images
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const imageUrl = `${baseUrl}/uploads/${filename}`
+    const imageUrl = `${baseUrl}/api/uploads/${filename}`
 
     return NextResponse.json({ 
       success: true,
