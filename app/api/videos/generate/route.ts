@@ -39,17 +39,37 @@ export async function POST(request: NextRequest) {
     // Determine video type
     const videoType = imageUrl ? 'image-to-video' : 'text-to-video'
 
-    // Create video record
-    const video = await db.video.create({
-      data: {
-        userId: user.id,
-        prompt,
-        additionalDetails: additionalDetails || null,
-        status: 'pending',
-        model: model || 'SORA 2',
-        videoType: videoType
+    // Create video record - try with new fields first, fallback if columns don't exist
+    let video
+    try {
+      // Try creating with model and videoType fields
+      video = await db.video.create({
+        data: {
+          userId: user.id,
+          prompt,
+          additionalDetails: additionalDetails || null,
+          status: 'pending',
+          model: model || 'SORA 2',
+          videoType: videoType
+        }
+      })
+    } catch (error: any) {
+      // If columns don't exist (P2022 error), create without them
+      if (error.code === 'P2022' || error.message?.includes('does not exist')) {
+        console.log('Model/videoType columns not available, creating video without them')
+        video = await db.video.create({
+          data: {
+            userId: user.id,
+            prompt,
+            additionalDetails: additionalDetails || null,
+            status: 'pending'
+          }
+        })
+      } else {
+        // Re-throw if it's a different error
+        throw error
       }
-    })
+    }
 
     // Deduct credits
     await db.user.update({

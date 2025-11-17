@@ -13,21 +13,31 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Use findMany without select to get all fields (handles missing columns gracefully)
+    // Use explicit select to avoid errors if new columns don't exist yet
     const videos = await db.video.findMany({
       where: { userId: user.id },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        prompt: true,
+        additionalDetails: true,
+        videoUrl: true,
+        status: true,
+        createdAt: true,
+        completedAt: true
+        // Note: model and videoType are excluded to avoid errors if columns don't exist
+      }
     })
 
-    // Map to ensure we only return the fields we need, handling missing columns
+    // Map to ensure consistent response format
     const mappedVideos = videos.map(video => ({
       id: video.id,
       prompt: video.prompt,
       additionalDetails: video.additionalDetails || undefined,
       videoUrl: video.videoUrl || undefined,
       status: video.status,
-      model: (video as any).model || undefined,
-      videoType: (video as any).videoType || undefined,
+      model: undefined, // Will be populated after migration
+      videoType: undefined, // Will be populated after migration
       createdAt: video.createdAt.toISOString(),
       completedAt: video.completedAt?.toISOString() || undefined
     }))
