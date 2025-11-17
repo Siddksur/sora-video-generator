@@ -13,23 +13,26 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Use findMany without select to get all fields (handles missing columns gracefully)
     const videos = await db.video.findMany({
       where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        prompt: true,
-        additionalDetails: true,
-        videoUrl: true,
-        status: true,
-        model: true,
-        videoType: true,
-        createdAt: true,
-        completedAt: true
-      }
+      orderBy: { createdAt: 'desc' }
     })
 
-    return NextResponse.json({ videos })
+    // Map to ensure we only return the fields we need, handling missing columns
+    const mappedVideos = videos.map(video => ({
+      id: video.id,
+      prompt: video.prompt,
+      additionalDetails: video.additionalDetails || undefined,
+      videoUrl: video.videoUrl || undefined,
+      status: video.status,
+      model: (video as any).model || undefined,
+      videoType: (video as any).videoType || undefined,
+      createdAt: video.createdAt.toISOString(),
+      completedAt: video.completedAt?.toISOString() || undefined
+    }))
+
+    return NextResponse.json({ videos: mappedVideos })
   } catch (error) {
     console.error('List videos error:', error)
     return NextResponse.json(
