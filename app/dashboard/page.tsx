@@ -71,7 +71,18 @@ export default function DashboardPage() {
         { packageIndex },
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      if (response.data.url) window.location.href = response.data.url
+      if (response.data.url) {
+        // Detect iframe context and redirect accordingly
+        // If in iframe, break out to top window to allow Stripe checkout to load
+        // If direct access, use normal redirect
+        if (window.self !== window.top) {
+          // In iframe - redirect top window to break out
+          window.top.location.href = response.data.url
+        } else {
+          // Direct access - normal redirect
+          window.location.href = response.data.url
+        }
+      }
     } catch (error: any) {
       alert(error.response?.data?.error || 'Failed to initiate purchase')
     } finally {
