@@ -75,7 +75,7 @@ export default function DashboardPage() {
         // Detect iframe context and redirect accordingly
         // If in iframe, break out to top window to allow Stripe checkout to load
         // If direct access, use normal redirect
-        if (window.self !== window.top) {
+        if (window.self !== window.top && window.top) {
           // In iframe - redirect top window to break out
           window.top.location.href = response.data.url
         } else {
