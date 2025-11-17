@@ -43,7 +43,8 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
 
     try {
       const response = await axios.post('/api/prompts/enhance', {
-        prompt: prompt
+        prompt: prompt,
+        videoType: 'text-to-video'
       })
 
       setEnhancedPrompt(response.data.enhancedPrompt || response.data.enhanced_prompt || '')

@@ -112,7 +112,8 @@ export default function ImageToVideoForm({ onSuccess }: ImageToVideoFormProps) {
 
     try {
       const response = await axios.post('/api/prompts/enhance', {
-        prompt: prompt
+        prompt: prompt,
+        videoType: 'image-to-video'
       })
 
       setEnhancedPrompt(response.data.enhancedPrompt || response.data.enhanced_prompt || '')

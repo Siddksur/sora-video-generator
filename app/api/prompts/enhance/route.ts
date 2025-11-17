@@ -5,7 +5,7 @@ const N8N_PROMPT_ENHANCE_WEBHOOK_URL = process.env.N8N_PROMPT_ENHANCE_WEBHOOK_UR
 
 export async function POST(request: NextRequest) {
   try {
-    const { prompt } = await request.json()
+    const { prompt, videoType } = await request.json()
 
     if (!prompt) {
       return NextResponse.json(
@@ -16,7 +16,8 @@ export async function POST(request: NextRequest) {
 
     // Call n8n webhook to enhance the prompt
     const response = await axios.post(N8N_PROMPT_ENHANCE_WEBHOOK_URL, {
-      prompt: prompt
+      prompt: prompt,
+      video_type: videoType || 'text-to-video' // text-to-video or image-to-video
     })
 
     // Extract enhanced prompt from response
