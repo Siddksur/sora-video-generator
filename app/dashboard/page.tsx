@@ -33,10 +33,40 @@ export default function DashboardPage() {
 
     fetchUser()
 
-    if (searchParams.get('success') === 'true') {
+    // Handle return from Stripe checkout
+    if (searchParams.get('success') === 'true' || searchParams.get('canceled') === 'true') {
       setTimeout(() => {
         fetchUser()
         setShowPurchaseModal(false)
+        
+        // Check if we should redirect back to parent iframe
+        // Get parent URL from query parameter (passed from Stripe redirect)
+        const parentUrlParam = searchParams.get('parent_url')
+        if (parentUrlParam) {
+          try {
+            const parentUrl = decodeURIComponent(parentUrlParam)
+            // Validate it's a valid URL before redirecting
+            if (/^https?:\/\//i.test(parentUrl)) {
+              // Redirect back to parent iframe URL
+              window.location.href = parentUrl
+              return
+            }
+          } catch (e) {
+            console.error('Error parsing parent URL:', e)
+          }
+        }
+        
+        // Fallback: check sessionStorage (for older flow)
+        const parentUrl = sessionStorage.getItem('stripe_parent_url')
+        if (parentUrl && /^https?:\/\//i.test(parentUrl)) {
+          try {
+            window.location.href = parentUrl
+            sessionStorage.removeItem('stripe_parent_url')
+            return
+          } catch (e) {
+            sessionStorage.removeItem('stripe_parent_url')
+          }
+        }
       }, 2000)
     }
   }, [router, searchParams])
@@ -67,17 +97,78 @@ export default function DashboardPage() {
     setPurchasing(true)
     try {
       const token = localStorage.getItem('token')
+      
+      // Detect iframe context and get parent URL
+      const isInIframe = window.self !== window.top
+      let parentUrl: string | null = null
+      
+      if (isInIframe) {
+        // Try to get referrer (parent page URL)
+        try {
+          parentUrl = document.referrer || null
+          // Fallback: try to get from parent window (may fail due to cross-origin)
+          if (!parentUrl && window.parent && window.parent !== window.self) {
+            try {
+              parentUrl = (window.parent as any).location?.href || null
+            } catch (e) {
+              // Cross-origin restriction - can't access parent location
+            }
+          }
+        } catch (e) {
+          // Can't determine parent URL
+        }
+      }
+      
+      // Create checkout session with parent URL if in iframe
+      const requestBody: { packageIndex: number; parentUrl?: string } = { packageIndex }
+      if (parentUrl && /^https?:\/\//i.test(parentUrl)) {
+        requestBody.parentUrl = parentUrl
+      }
+      
       const response = await axios.post('/api/stripe/checkout', 
-        { packageIndex },
+        requestBody,
         { headers: { Authorization: `Bearer ${token}` } }
       )
+      
       if (response.data.url) {
-        // Detect iframe context and redirect accordingly
-        // If in iframe, break out to top window to allow Stripe checkout to load
-        // If direct access, use normal redirect
-        if (window.self !== window.top && window.top) {
-          // In iframe - redirect top window to break out
-          window.top.location.href = response.data.url
+        if (isInIframe) {
+          // Try multiple methods to break out of iframe
+          try {
+            // Method 1: Try redirecting top window (works if sandbox allows it)
+            if (window.top) {
+              window.top.location.href = response.data.url
+              return
+            }
+          } catch (e) {
+            // Method 2: If top navigation is blocked, try opening popup
+            try {
+              const popup = window.open(response.data.url, '_blank', 'width=800,height=600')
+              if (popup) {
+                // Monitor popup for completion
+                const checkPopup = setInterval(() => {
+                  if (popup.closed) {
+                    clearInterval(checkPopup)
+                    fetchUser() // Refresh credits
+                  }
+                }, 500)
+                return
+              }
+            } catch (e2) {
+              // Method 3: Fallback - try postMessage to parent
+              try {
+                window.parent.postMessage({ 
+                  type: 'stripe_checkout', 
+                  url: response.data.url 
+                }, '*')
+                alert('Please allow popups or check with the website administrator to enable Stripe checkout.')
+                return
+              } catch (e3) {
+                // Method 4: Last resort - show URL
+                alert(`Please visit this URL to complete checkout:\n${response.data.url}`)
+                return
+              }
+            }
+          }
         } else {
           // Direct access - normal redirect
           window.location.href = response.data.url

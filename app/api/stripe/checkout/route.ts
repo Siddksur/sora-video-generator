@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { packageIndex } = await request.json()
+    const { packageIndex, parentUrl } = await request.json()
     
     if (packageIndex === undefined || packageIndex < 0 || packageIndex >= CREDIT_PACKAGES.length) {
       return NextResponse.json(
@@ -37,6 +37,16 @@ export async function POST(request: NextRequest) {
         { error: 'Server configuration error (base URL)' },
         { status: 500 }
       )
+    }
+
+    // Build redirect URLs with parent URL parameter if provided
+    const successParams = new URLSearchParams({ success: 'true' })
+    const cancelParams = new URLSearchParams({ canceled: 'true' })
+    
+    // Only include parentUrl if it's a valid URL (security check)
+    if (parentUrl && typeof parentUrl === 'string' && /^https?:\/\//i.test(parentUrl)) {
+      successParams.append('parent_url', encodeURIComponent(parentUrl))
+      cancelParams.append('parent_url', encodeURIComponent(parentUrl))
     }
 
     // Create transaction record
@@ -66,8 +76,8 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'payment',
-      success_url: `${baseUrl}/dashboard?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/dashboard?canceled=true`,
+      success_url: `${baseUrl}/dashboard?${successParams.toString()}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/dashboard?${cancelParams.toString()}`,
       metadata: {
         userId: user.id,
         transactionId: transaction.id,
