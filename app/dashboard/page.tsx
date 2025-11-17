@@ -23,6 +23,59 @@ export default function DashboardPage() {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false)
   const [purchasing, setPurchasing] = useState(false)
   const [activeTab, setActiveTab] = useState<'text' | 'image'>('text')
+  const [parentUrl, setParentUrl] = useState<string | null>(null)
+
+  // Listen for postMessage from parent window (optional, non-blocking)
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      // Only accept messages with parent_url data
+      if (event.data && event.data.type === 'parent_url' && event.data.url) {
+        try {
+          const url = event.data.url
+          // Validate URL format
+          if (typeof url === 'string' && /^https?:\/\//i.test(url)) {
+            setParentUrl(url)
+            // Also store in sessionStorage as backup
+            try {
+              sessionStorage.setItem('stripe_parent_url', url)
+            } catch (e) {
+              // sessionStorage might be blocked, continue anyway
+            }
+          }
+        } catch (e) {
+          // Invalid message, ignore
+        }
+      }
+    }
+
+    // Only add listener if in iframe
+    if (typeof window !== 'undefined' && window.self !== window.top) {
+      window.addEventListener('message', handleMessage)
+      return () => {
+        window.removeEventListener('message', handleMessage)
+      }
+    }
+  }, [])
+
+  // Check for parent URL in URL parameter (if parent passes it)
+  useEffect(() => {
+    const urlParam = searchParams.get('parent_url')
+    if (urlParam) {
+      try {
+        const decoded = decodeURIComponent(urlParam)
+        if (/^https?:\/\//i.test(decoded)) {
+          setParentUrl(decoded)
+          try {
+            sessionStorage.setItem('stripe_parent_url', decoded)
+          } catch (e) {
+            // sessionStorage might be blocked
+          }
+        }
+      } catch (e) {
+        // Invalid URL parameter, ignore
+      }
+    }
+  }, [searchParams])
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -40,7 +93,7 @@ export default function DashboardPage() {
         setShowPurchaseModal(false)
         
         // Check if we should redirect back to parent iframe
-        // Get parent URL from query parameter (passed from Stripe redirect)
+        // Priority 1: Get parent URL from query parameter (passed from Stripe redirect)
         const parentUrlParam = searchParams.get('parent_url')
         if (parentUrlParam) {
           try {
@@ -56,11 +109,21 @@ export default function DashboardPage() {
           }
         }
         
-        // Fallback: check sessionStorage (for older flow)
-        const parentUrl = sessionStorage.getItem('stripe_parent_url')
+        // Priority 2: Check state (from postMessage)
         if (parentUrl && /^https?:\/\//i.test(parentUrl)) {
           try {
             window.location.href = parentUrl
+            return
+          } catch (e) {
+            // Redirect failed, continue to next fallback
+          }
+        }
+        
+        // Priority 3: Fallback to sessionStorage (for older flow)
+        const storedParentUrl = sessionStorage.getItem('stripe_parent_url')
+        if (storedParentUrl && /^https?:\/\//i.test(storedParentUrl)) {
+          try {
+            window.location.href = storedParentUrl
             sessionStorage.removeItem('stripe_parent_url')
             return
           } catch (e) {
@@ -69,7 +132,7 @@ export default function DashboardPage() {
         }
       }, 2000)
     }
-  }, [router, searchParams])
+  }, [router, searchParams, parentUrl])
 
   const fetchUser = async () => {
     try {
@@ -100,29 +163,79 @@ export default function DashboardPage() {
       
       // Detect iframe context and get parent URL
       const isInIframe = window.self !== window.top
-      let parentUrl: string | null = null
+      let capturedParentUrl: string | null = null
       
       if (isInIframe) {
-        // Try to get referrer (parent page URL)
-        try {
-          parentUrl = document.referrer || null
-          // Fallback: try to get from parent window (may fail due to cross-origin)
-          if (!parentUrl && window.parent && window.parent !== window.self) {
-            try {
-              parentUrl = (window.parent as any).location?.href || null
-            } catch (e) {
-              // Cross-origin restriction - can't access parent location
+        // Try multiple methods to capture parent URL (in order of preference)
+        
+        // Method 1: Use stored parent URL from postMessage or URL parameter
+        if (parentUrl && /^https?:\/\//i.test(parentUrl)) {
+          capturedParentUrl = parentUrl
+        }
+        
+        // Method 2: Try to read window.top.location.href (may work if same-origin or sandbox allows)
+        if (!capturedParentUrl) {
+          try {
+            if (window.top && window.top !== window.self) {
+              const topUrl = (window.top as any).location?.href
+              if (topUrl && /^https?:\/\//i.test(topUrl)) {
+                capturedParentUrl = topUrl
+              }
             }
+          } catch (e) {
+            // Cross-origin restriction or sandbox blocking - expected, continue to next method
           }
-        } catch (e) {
-          // Can't determine parent URL
+        }
+        
+        // Method 3: Try window.parent.location.href (may work if same-origin)
+        if (!capturedParentUrl) {
+          try {
+            if (window.parent && window.parent !== window.self) {
+              const parentLocationUrl = (window.parent as any).location?.href
+              if (parentLocationUrl && /^https?:\/\//i.test(parentLocationUrl)) {
+                capturedParentUrl = parentLocationUrl
+              }
+            }
+          } catch (e) {
+            // Cross-origin restriction - expected, continue to next method
+          }
+        }
+        
+        // Method 4: Check sessionStorage (from previous attempts)
+        if (!capturedParentUrl) {
+          try {
+            const stored = sessionStorage.getItem('stripe_parent_url')
+            if (stored && /^https?:\/\//i.test(stored)) {
+              capturedParentUrl = stored
+            }
+          } catch (e) {
+            // sessionStorage might be blocked
+          }
+        }
+        
+        // Method 5: Fallback to document.referrer (may be incomplete but better than nothing)
+        if (!capturedParentUrl) {
+          try {
+            const referrer = document.referrer
+            if (referrer && /^https?:\/\//i.test(referrer)) {
+              capturedParentUrl = referrer
+            }
+          } catch (e) {
+            // Can't access referrer
+          }
         }
       }
       
       // Create checkout session with parent URL if in iframe
       const requestBody: { packageIndex: number; parentUrl?: string } = { packageIndex }
-      if (parentUrl && /^https?:\/\//i.test(parentUrl)) {
-        requestBody.parentUrl = parentUrl
+      if (capturedParentUrl && /^https?:\/\//i.test(capturedParentUrl)) {
+        requestBody.parentUrl = capturedParentUrl
+        // Store in sessionStorage as backup
+        try {
+          sessionStorage.setItem('stripe_parent_url', capturedParentUrl)
+        } catch (e) {
+          // sessionStorage might be blocked, continue anyway
+        }
       }
       
       const response = await axios.post('/api/stripe/checkout', 
