@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { prompt, additionalDetails, requestedEmail, aspectRatio, model } = await request.json()
+    const { prompt, additionalDetails, requestedEmail, aspectRatio, model, imageUrl } = await request.json()
 
     if (!prompt) {
       return NextResponse.json(
@@ -80,7 +80,8 @@ export async function POST(request: NextRequest) {
         // optional fields for your workflow
         requested_email: requestedEmail || user.email,
         aspect_ratio: aspectRatio || 'landscape',
-        model: model || 'SORA 2'
+        model: model || 'SORA 2',
+        image_url: imageUrl || null
       })
     } catch (error) {
       console.error('Error calling n8n webhook:', error)

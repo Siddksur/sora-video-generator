@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import { CreditCard, LogOut } from 'lucide-react'
 import VideoForm from '@/components/VideoForm'
+import ImageToVideoForm from '@/components/ImageToVideoForm'
 import VideoDashboard from '@/components/VideoDashboard'
 
 interface User {
@@ -21,6 +22,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [showPurchaseModal, setShowPurchaseModal] = useState(false)
   const [purchasing, setPurchasing] = useState(false)
+  const [activeTab, setActiveTab] = useState<'text' | 'image'>('text')
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -139,8 +141,39 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Video Generation Form */}
           <div className="backdrop-blur-xl bg-white/10 border border-white/10 rounded-2xl shadow-2xl p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Generate SORA 2 Video</h2>
-            <VideoForm onSuccess={fetchUser} />
+            {/* Tab Menu */}
+            <div className="flex gap-2 mb-6 p-1 bg-white/5 rounded-lg">
+              <button
+                onClick={() => setActiveTab('text')}
+                className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === 'text'
+                    ? 'bg-cyan-500 text-white'
+                    : 'text-slate-300 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                Text to Video
+              </button>
+              <button
+                onClick={() => setActiveTab('image')}
+                className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === 'image'
+                    ? 'bg-cyan-500 text-white'
+                    : 'text-slate-300 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                Image to Video
+              </button>
+            </div>
+
+            <h2 className="text-xl font-semibold text-white mb-4">
+              {activeTab === 'text' ? 'Generate SORA 2 Video' : 'Generate SORA 2 Video from Image'}
+            </h2>
+            
+            {activeTab === 'text' ? (
+              <VideoForm onSuccess={fetchUser} />
+            ) : (
+              <ImageToVideoForm onSuccess={fetchUser} />
+            )}
           </div>
 
           {/* Video Dashboard */}
