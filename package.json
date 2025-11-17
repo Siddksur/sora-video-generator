@@ -6,11 +6,13 @@
         "dev": "next dev",
         "build": "prisma generate && next build",
         "start": "next start",
+        "start:with-migration": "sh scripts/start.sh",
         "lint": "next lint",
         "db:generate": "prisma generate",
         "db:push": "prisma db push",
         "db:studio": "prisma studio",
         "create-users": "ts-node scripts/create-users.ts",
+        "add-credits": "ts-node scripts/add-credits.ts",
         "postinstall": "prisma generate"
     },
     "dependencies": {
