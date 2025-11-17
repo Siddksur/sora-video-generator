@@ -222,7 +222,7 @@ export default function VideoDashboard() {
             <div className="mt-4 bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-3">
               <div className="flex items-center gap-2 text-sm text-cyan-200">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Your video is being generated. This may take 2-4 minutes...</span>
+                <span>Your video is being generated. This may take up to 6-15 minutes depending on the model selected...</span>
               </div>
             </div>
           )}

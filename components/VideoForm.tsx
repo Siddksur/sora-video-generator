@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import axios from 'axios'
-import { Loader2, Sparkles } from 'lucide-react'
+import { Loader2, Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
 
 interface VideoFormProps {
   onSuccess: () => void
@@ -20,6 +20,7 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [exampleModel, setExampleModel] = useState<'SORA 2' | 'SORA 2 Pro'>('SORA 2')
+  const [exampleExpanded, setExampleExpanded] = useState(false)
 
   useEffect(() => {
     try {
@@ -151,51 +152,64 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
       )}
 
       {/* Example Video Section */}
-      <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-        <div className="flex items-center justify-between mb-3">
+      <div className="bg-white/5 border border-white/10 rounded-lg">
+        <button
+          type="button"
+          onClick={() => setExampleExpanded(!exampleExpanded)}
+          className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
+        >
           <h3 className="text-sm font-medium text-slate-200">Example Output</h3>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setExampleModel('SORA 2')}
-              className={`px-3 py-1 text-xs rounded-lg transition-colors ${
-                exampleModel === 'SORA 2'
-                  ? 'bg-cyan-500 text-white'
-                  : 'bg-white/10 text-slate-300 hover:bg-white/20'
-              }`}
-            >
-              SORA 2
-            </button>
-            <button
-              type="button"
-              onClick={() => setExampleModel('SORA 2 Pro')}
-              className={`px-3 py-1 text-xs rounded-lg transition-colors ${
-                exampleModel === 'SORA 2 Pro'
-                  ? 'bg-cyan-500 text-white'
-                  : 'bg-white/10 text-slate-300 hover:bg-white/20'
-              }`}
-            >
-              SORA 2 Pro
-            </button>
+          {exampleExpanded ? (
+            <ChevronUp className="w-4 h-4 text-slate-400" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-slate-400" />
+          )}
+        </button>
+        {exampleExpanded && (
+          <div className="p-4 pt-0 space-y-3">
+            <div className="flex gap-2 justify-center">
+              <button
+                type="button"
+                onClick={() => setExampleModel('SORA 2')}
+                className={`px-3 py-1 text-xs rounded-lg transition-colors ${
+                  exampleModel === 'SORA 2'
+                    ? 'bg-cyan-500 text-white'
+                    : 'bg-white/10 text-slate-300 hover:bg-white/20'
+                }`}
+              >
+                SORA 2
+              </button>
+              <button
+                type="button"
+                onClick={() => setExampleModel('SORA 2 Pro')}
+                className={`px-3 py-1 text-xs rounded-lg transition-colors ${
+                  exampleModel === 'SORA 2 Pro'
+                    ? 'bg-cyan-500 text-white'
+                    : 'bg-white/10 text-slate-300 hover:bg-white/20'
+                }`}
+              >
+                SORA 2 Pro
+              </button>
+            </div>
+            <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
+              <video
+                key={exampleModel}
+                src={exampleModel === 'SORA 2' 
+                  ? 'https://file.aiquickdraw.com/custom-page/akr/section-images/1759432328669pkhobl0t.mp4'
+                  : 'https://file.aiquickdraw.com/custom-page/akr/section-images/1760182741759dipnk388.mp4'
+                }
+                controls
+                className="w-full h-full"
+                preload="metadata"
+              >
+                Your browser does not support the video tag.
+              </video>
+            </div>
+            <p className="text-xs text-slate-400 text-center">
+              Example output from {exampleModel}
+            </p>
           </div>
-        </div>
-        <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
-          <video
-            key={exampleModel}
-            src={exampleModel === 'SORA 2' 
-              ? 'https://file.aiquickdraw.com/custom-page/akr/section-images/1759432328669pkhobl0t.mp4'
-              : 'https://file.aiquickdraw.com/custom-page/akr/section-images/1760182741759dipnk388.mp4'
-            }
-            controls
-            className="w-full h-full"
-            preload="metadata"
-          >
-            Your browser does not support the video tag.
-          </video>
-        </div>
-        <p className="mt-2 text-xs text-slate-400 text-center">
-          Example output from {exampleModel}
-        </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
