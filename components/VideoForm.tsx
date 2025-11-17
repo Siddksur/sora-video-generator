@@ -19,6 +19,7 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
   const [enhancing, setEnhancing] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [exampleModel, setExampleModel] = useState<'SORA 2' | 'SORA 2 Pro'>('SORA 2')
 
   useEffect(() => {
     try {
@@ -149,6 +150,54 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
         </div>
       )}
 
+      {/* Example Video Section */}
+      <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-medium text-slate-200">Example Output</h3>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setExampleModel('SORA 2')}
+              className={`px-3 py-1 text-xs rounded-lg transition-colors ${
+                exampleModel === 'SORA 2'
+                  ? 'bg-cyan-500 text-white'
+                  : 'bg-white/10 text-slate-300 hover:bg-white/20'
+              }`}
+            >
+              SORA 2
+            </button>
+            <button
+              type="button"
+              onClick={() => setExampleModel('SORA 2 Pro')}
+              className={`px-3 py-1 text-xs rounded-lg transition-colors ${
+                exampleModel === 'SORA 2 Pro'
+                  ? 'bg-cyan-500 text-white'
+                  : 'bg-white/10 text-slate-300 hover:bg-white/20'
+              }`}
+            >
+              SORA 2 Pro
+            </button>
+          </div>
+        </div>
+        <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
+          <video
+            key={exampleModel}
+            src={exampleModel === 'SORA 2' 
+              ? 'https://file.aiquickdraw.com/custom-page/akr/section-images/1759432328669pkhobl0t.mp4'
+              : 'https://file.aiquickdraw.com/custom-page/akr/section-images/1760182741759dipnk388.mp4'
+            }
+            controls
+            className="w-full h-full"
+            preload="metadata"
+          >
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <p className="mt-2 text-xs text-slate-400 text-center">
+          Example output from {exampleModel}
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="aspectRatio" className="block text-sm font-medium text-slate-200 mb-2">
@@ -178,6 +227,20 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
             <option value="SORA 2">SORA 2 (5 Credits)</option>
             <option value="SORA 2 Pro">SORA 2 Pro (20 Credits)</option>
           </select>
+        </div>
+      </div>
+
+      {/* Generation Time Alert */}
+      <div className={`bg-amber-500/10 border border-amber-500/30 text-amber-200 px-4 py-3 rounded-lg text-sm flex items-start gap-2`}>
+        <Loader2 className="w-4 h-4 mt-0.5 flex-shrink-0" />
+        <div>
+          <p className="font-medium mb-1">Estimated Generation Time:</p>
+          <p>
+            {model === 'SORA 2' 
+              ? 'SORA 2 videos can take up to 6 minutes to generate.'
+              : 'SORA 2 Pro videos can take up to 15 minutes to generate.'
+            }
+          </p>
         </div>
       </div>
 
