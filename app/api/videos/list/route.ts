@@ -13,31 +13,22 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Use explicit select to avoid errors if new columns don't exist yet
+    // Fetch all videos without explicit select to handle dynamic columns
     const videos = await db.video.findMany({
       where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        prompt: true,
-        additionalDetails: true,
-        videoUrl: true,
-        status: true,
-        createdAt: true,
-        completedAt: true
-        // Note: model and videoType are excluded to avoid errors if columns don't exist
-      }
+      orderBy: { createdAt: 'desc' }
     })
 
-    // Map to ensure consistent response format
-    const mappedVideos = videos.map(video => ({
+    // Map to ensure consistent response format, handling potentially missing columns
+    const mappedVideos = videos.map((video: any) => ({
       id: video.id,
       prompt: video.prompt,
       additionalDetails: video.additionalDetails || undefined,
       videoUrl: video.videoUrl || undefined,
       status: video.status,
-      model: undefined, // Will be populated after migration
-      videoType: undefined, // Will be populated after migration
+      model: video.model || undefined,
+      videoType: video.videoType || undefined,
+      errorMessage: video.errorMessage || undefined,
       createdAt: video.createdAt.toISOString(),
       completedAt: video.completedAt?.toISOString() || undefined
     }))

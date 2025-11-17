@@ -12,6 +12,7 @@ interface Video {
   status: string
   model?: string
   videoType?: string
+  errorMessage?: string
   createdAt: string
   completedAt?: string
 }
@@ -245,6 +246,35 @@ export default function VideoDashboard() {
                   onClick={() => handleDelete(video.id)}
                   disabled={deletingId === video.id}
                   className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 text-rose-200 text-sm rounded-lg border border-rose-500/30 hover:bg-rose-500/20 disabled:opacity-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  {deletingId === video.id ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {video.status === 'failed' && (
+            <div className="mt-4 bg-rose-500/10 border border-rose-500/30 rounded-lg p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 text-sm font-medium text-rose-200 mb-2">
+                    <XCircle className="w-5 h-5 text-rose-400" />
+                    <span>Video Generation Failed</span>
+                  </div>
+                  {video.errorMessage && (
+                    <div className="mt-2 p-3 bg-rose-900/20 border border-rose-500/20 rounded-lg">
+                      <p className="text-sm text-rose-100 whitespace-pre-wrap">{video.errorMessage}</p>
+                    </div>
+                  )}
+                  <p className="text-xs text-rose-300/80 mt-3">
+                    Credits have been refunded to your account. Please try generating again.
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleDelete(video.id)}
+                  disabled={deletingId === video.id}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 text-rose-200 text-sm rounded-lg border border-rose-500/30 hover:bg-rose-500/20 disabled:opacity-50 flex-shrink-0"
                 >
                   <Trash2 className="w-4 h-4" />
                   {deletingId === video.id ? 'Deleting...' : 'Delete'}

@@ -50,6 +50,7 @@ model Video {
   n8nTaskId         String?   @map("n8n_task_id")
   model             String? // SORA 2 or SORA 2 Pro
   videoType         String?   @map("video_type") // text-to-video or image-to-video
+  errorMessage      String?   @map("error_message") // Error message from video generation failure
   createdAt         DateTime  @default(now()) @map("created_at")
   completedAt       DateTime? @map("completed_at")
 
