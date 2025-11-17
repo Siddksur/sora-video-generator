@@ -69,6 +69,17 @@ export async function POST(request: NextRequest) {
     // Call n8n webhook
     const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/videos/callback`
     
+    // Determine the model value for the webhook payload
+    let webhookModel = model || 'SORA 2'
+    if (imageUrl) {
+      // Image to Video mode
+      if (model === 'SORA 2 Pro') {
+        webhookModel = 'image-to-video-sora2pro'
+      } else {
+        webhookModel = 'image-to-video-sora2'
+      }
+    }
+    
     try {
       await axios.post(N8N_WEBHOOK_URL, {
         video_id: video.id,
@@ -80,7 +91,7 @@ export async function POST(request: NextRequest) {
         // optional fields for your workflow
         requested_email: requestedEmail || user.email,
         aspect_ratio: aspectRatio || 'landscape',
-        model: model || 'SORA 2',
+        model: webhookModel,
         image_url: imageUrl || null
       })
     } catch (error) {
