@@ -22,6 +22,8 @@ export async function GET(request: NextRequest) {
         additionalDetails: true,
         videoUrl: true,
         status: true,
+        model: true,
+        videoType: true,
         createdAt: true,
         completedAt: true
       }

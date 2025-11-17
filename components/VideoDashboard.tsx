@@ -10,6 +10,8 @@ interface Video {
   additionalDetails?: string
   videoUrl?: string
   status: string
+  model?: string
+  videoType?: string
   createdAt: string
   completedAt?: string
 }
@@ -124,6 +126,14 @@ export default function VideoDashboard() {
     return prompt.length > 100
   }
 
+  const getModelDisplayText = (video: Video) => {
+    if (!video.model) return null
+    
+    const modelName = video.model
+    const videoType = video.videoType === 'image-to-video' ? 'Image to Video' : 'Text To Video'
+    return `Model: ${modelName} ${videoType}`
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -165,6 +175,12 @@ export default function VideoDashboard() {
               <div className="flex items-center gap-2 text-xs text-slate-300">
                 {getStatusIcon(video.status)}
                 <span>{getStatusText(video)}</span>
+                {video.status === 'completed' && getModelDisplayText(video) && (
+                  <>
+                    <span>•</span>
+                    <span className="text-slate-400">{getModelDisplayText(video)}</span>
+                  </>
+                )}
                 <span>•</span>
                 <span>{new Date(video.createdAt).toLocaleDateString()}</span>
                 {isStale(video) && (
@@ -174,16 +190,6 @@ export default function VideoDashboard() {
                   </span>
                 )}
               </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => handleDelete(video.id)}
-                disabled={deletingId === video.id}
-                className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 text-rose-200 text-sm rounded-lg border border-rose-500/30 hover:bg-rose-500/20 disabled:opacity-50"
-              >
-                <Trash2 className="w-4 h-4" />
-                {deletingId === video.id ? 'Deleting...' : 'Delete'}
-              </button>
             </div>
           </div>
 
@@ -198,21 +204,31 @@ export default function VideoDashboard() {
                   Your browser does not support the video tag.
                 </video>
               </div>
-              <div className="flex gap-2">
-                <a
-                  href="https://business.facebook.com/adsmanager"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Ads Manager
-                </a>
+              <div className="flex items-center justify-between">
+                <div className="flex gap-2">
+                  <a
+                    href="https://business.facebook.com/adsmanager"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Ads Manager
+                  </a>
+                  <button
+                    onClick={() => handleDownload(video.videoUrl!, video.prompt)}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/10 text-white text-sm rounded-lg hover:bg-white/20 transition-colors"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download Video
+                  </button>
+                </div>
                 <button
-                  onClick={() => handleDownload(video.videoUrl!, video.prompt)}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/10 text-white text-sm rounded-lg hover:bg-white/20 transition-colors"
+                  onClick={() => handleDelete(video.id)}
+                  disabled={deletingId === video.id}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 text-rose-200 text-sm rounded-lg border border-rose-500/30 hover:bg-rose-500/20 disabled:opacity-50"
                 >
-                  <Download className="w-4 h-4" />
-                  Download Video
+                  <Trash2 className="w-4 h-4" />
+                  {deletingId === video.id ? 'Deleting...' : 'Delete'}
                 </button>
               </div>
             </div>
@@ -220,9 +236,19 @@ export default function VideoDashboard() {
 
           {(video.status === 'pending' || video.status === 'processing') && (
             <div className="mt-4 bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-3">
-              <div className="flex items-center gap-2 text-sm text-cyan-200">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Your video is being generated. This may take up to 6-15 minutes depending on the model selected...</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-cyan-200">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Your video is being generated. This may take up to 6-15 minutes depending on the model selected...</span>
+                </div>
+                <button
+                  onClick={() => handleDelete(video.id)}
+                  disabled={deletingId === video.id}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 text-rose-200 text-sm rounded-lg border border-rose-500/30 hover:bg-rose-500/20 disabled:opacity-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  {deletingId === video.id ? 'Deleting...' : 'Delete'}
+                </button>
               </div>
             </div>
           )}

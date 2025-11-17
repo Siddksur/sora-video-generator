@@ -36,13 +36,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Determine video type
+    const videoType = imageUrl ? 'image-to-video' : 'text-to-video'
+
     // Create video record
     const video = await db.video.create({
       data: {
         userId: user.id,
         prompt,
         additionalDetails: additionalDetails || null,
-        status: 'pending'
+        status: 'pending',
+        model: model || 'SORA 2',
+        videoType: videoType
       }
     })
 
