@@ -196,7 +196,7 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
               <video
                 key={exampleModel}
                 src={exampleModel === 'SORA 2' 
-                  ? 'https://file.aiquickdraw.com/custom-page/akr/section-images/1759432328669pkhobl0t.mp4'
+                  ? 'https://tempfile.aiquickdraw.com/f/b52bf519efb4a2c7b3330c418c0752bc/e179d9eb-81a7-47b0-ba76-efa786147e6b.mp4'
                   : 'https://file.aiquickdraw.com/custom-page/akr/section-images/1760182741759dipnk388.mp4'
                 }
                 controls
