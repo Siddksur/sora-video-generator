@@ -14,8 +14,10 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (token) router.push('/dashboard')
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token')
+      if (token) router.push('/dashboard')
+    }
   }, [router])
 
   const handleSubmit = async (e: React.FormEvent) => {

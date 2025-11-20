@@ -6,9 +6,10 @@ import { Loader2, Sparkles, ChevronDown, ChevronUp, Upload, X, Image as ImageIco
 
 interface ImageToVideoFormProps {
   onSuccess: () => void
+  service: 'SORA' | 'VEO 3'
 }
 
-export default function ImageToVideoForm({ onSuccess }: ImageToVideoFormProps) {
+export default function ImageToVideoForm({ onSuccess, service }: ImageToVideoFormProps) {
   const [prompt, setPrompt] = useState('')
   const [enhancedPrompt, setEnhancedPrompt] = useState('')
   const [aspectRatio, setAspectRatio] = useState<'portrait' | 'landscape'>('landscape')
@@ -21,11 +22,23 @@ export default function ImageToVideoForm({ onSuccess }: ImageToVideoFormProps) {
   const [success, setSuccess] = useState(false)
   const [exampleModel, setExampleModel] = useState<'SORA 2' | 'SORA 2 Pro'>('SORA 2')
   const [exampleExpanded, setExampleExpanded] = useState(false)
+  // SORA 2 uses single image upload
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
+  // VEO 3 uses two image uploads (Start Frame & End Frame)
+  const [startFrameFile, setStartFrameFile] = useState<File | null>(null)
+  const [startFramePreview, setStartFramePreview] = useState<string | null>(null)
+  const [startFrameUrl, setStartFrameUrl] = useState<string | null>(null)
+  const [endFrameFile, setEndFrameFile] = useState<File | null>(null)
+  const [endFramePreview, setEndFramePreview] = useState<string | null>(null)
+  const [endFrameUrl, setEndFrameUrl] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [uploadingStartFrame, setUploadingStartFrame] = useState(false)
+  const [uploadingEndFrame, setUploadingEndFrame] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const startFrameInputRef = useRef<HTMLInputElement>(null)
+  const endFrameInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     try {
@@ -68,6 +81,68 @@ export default function ImageToVideoForm({ onSuccess }: ImageToVideoFormProps) {
     handleImageUpload(file)
   }
 
+  const handleStartFrameSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select a valid image file')
+      return
+    }
+
+    // Validate file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    if (file.size > maxSize) {
+      setError('Image size must be less than 10MB')
+      return
+    }
+
+    setStartFrameFile(file)
+    setError('')
+
+    // Create preview
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setStartFramePreview(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+
+    // Upload image
+    handleStartFrameUpload(file)
+  }
+
+  const handleEndFrameSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select a valid image file')
+      return
+    }
+
+    // Validate file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    if (file.size > maxSize) {
+      setError('Image size must be less than 10MB')
+      return
+    }
+
+    setEndFrameFile(file)
+    setError('')
+
+    // Create preview
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setEndFramePreview(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+
+    // Upload image
+    handleEndFrameUpload(file)
+  }
+
   const handleImageUpload = async (file: File) => {
     setUploading(true)
     try {
@@ -92,12 +167,78 @@ export default function ImageToVideoForm({ onSuccess }: ImageToVideoFormProps) {
     }
   }
 
+  const handleStartFrameUpload = async (file: File) => {
+    setUploadingStartFrame(true)
+    try {
+      const token = localStorage.getItem('token')
+      const formData = new FormData()
+      formData.append('image', file)
+
+      const response = await axios.post('/api/upload', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+
+      setStartFrameUrl(response.data.imageUrl)
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to upload start frame image')
+      setStartFrameFile(null)
+      setStartFramePreview(null)
+    } finally {
+      setUploadingStartFrame(false)
+    }
+  }
+
+  const handleEndFrameUpload = async (file: File) => {
+    setUploadingEndFrame(true)
+    try {
+      const token = localStorage.getItem('token')
+      const formData = new FormData()
+      formData.append('image', file)
+
+      const response = await axios.post('/api/upload', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+
+      setEndFrameUrl(response.data.imageUrl)
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to upload end frame image')
+      setEndFrameFile(null)
+      setEndFramePreview(null)
+    } finally {
+      setUploadingEndFrame(false)
+    }
+  }
+
   const handleRemoveImage = () => {
     setImageFile(null)
     setImagePreview(null)
     setImageUrl(null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
+    }
+  }
+
+  const handleRemoveStartFrame = () => {
+    setStartFrameFile(null)
+    setStartFramePreview(null)
+    setStartFrameUrl(null)
+    if (startFrameInputRef.current) {
+      startFrameInputRef.current.value = ''
+    }
+  }
+
+  const handleRemoveEndFrame = () => {
+    setEndFrameFile(null)
+    setEndFramePreview(null)
+    setEndFrameUrl(null)
+    if (endFrameInputRef.current) {
+      endFrameInputRef.current.value = ''
     }
   }
 
@@ -139,24 +280,43 @@ export default function ImageToVideoForm({ onSuccess }: ImageToVideoFormProps) {
       return
     }
 
-    if (!imageUrl) {
-      setError('Please upload an image')
-      setLoading(false)
-      return
+    // Validate image uploads based on service
+    if (service === 'VEO 3') {
+      if (!startFrameUrl || !endFrameUrl) {
+        setError('Please upload both Start Frame and End Frame images')
+        setLoading(false)
+        return
+      }
+    } else {
+      // SORA 2 requires single image
+      if (!imageUrl) {
+        setError('Please upload an image')
+        setLoading(false)
+        return
+      }
     }
 
     try {
       const token = localStorage.getItem('token')
-      await axios.post('/api/videos/generate', 
-        { 
-          prompt: finalPrompt, 
-          aspectRatio,
-          model,
-          imageUrl,
-          requestedEmail: notifyChecked ? userEmail : undefined 
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
+      const payload: any = {
+        prompt: finalPrompt,
+        aspectRatio,
+        model,
+        service,
+        requestedEmail: notifyChecked ? userEmail : undefined
+      }
+
+      // Add image URLs based on service
+      if (service === 'VEO 3') {
+        payload.startFrameUrl = startFrameUrl
+        payload.endFrameUrl = endFrameUrl
+      } else {
+        payload.imageUrl = imageUrl
+      }
+
+      await axios.post('/api/videos/generate', payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
 
       setSuccess(true)
       setPrompt('')
@@ -165,6 +325,8 @@ export default function ImageToVideoForm({ onSuccess }: ImageToVideoFormProps) {
       setAspectRatio('landscape')
       setModel('SORA 2')
       handleRemoveImage()
+      handleRemoveStartFrame()
+      handleRemoveEndFrame()
       onSuccess()
       
       setTimeout(() => setSuccess(false), 3000)
@@ -175,64 +337,118 @@ export default function ImageToVideoForm({ onSuccess }: ImageToVideoFormProps) {
     }
   }
 
+  // Helper function to render image upload UI
+  const renderImageUpload = (
+    label: string,
+    preview: string | null,
+    uploading: boolean,
+    fileInputRef: React.RefObject<HTMLInputElement>,
+    handleSelect: (e: React.ChangeEvent<HTMLInputElement>) => void,
+    handleRemove: () => void,
+    imageUrl: string | null,
+    inputId: string
+  ) => (
+    <div>
+      <label htmlFor={inputId} className="block text-sm font-medium text-slate-200 mb-2">
+        {label} *
+      </label>
+      {!preview ? (
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          className="border-2 border-dashed border-white/20 rounded-lg p-8 text-center cursor-pointer hover:border-cyan-400/50 hover:bg-white/5 transition-colors"
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            id={inputId}
+            accept="image/*"
+            onChange={handleSelect}
+            className="hidden"
+          />
+          <Upload className="w-12 h-12 mx-auto mb-3 text-slate-400" />
+          <p className="text-sm text-slate-300 mb-1">
+            Click to upload or drag and drop
+          </p>
+          <p className="text-xs text-slate-400">
+            PNG, JPG, GIF up to 10MB
+          </p>
+          {uploading && (
+            <div className="mt-3 flex items-center justify-center gap-2 text-cyan-400">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="text-sm">Uploading...</span>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="relative">
+          <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-white/10">
+            <img
+              src={preview}
+              alt="Preview"
+              className="w-full h-full object-contain"
+            />
+            <button
+              type="button"
+              onClick={handleRemove}
+              className="absolute top-2 right-2 p-2 bg-rose-500/90 hover:bg-rose-500 text-white rounded-lg transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          {imageUrl && (
+            <p className="mt-2 text-xs text-emerald-400 text-center">
+              ✓ Image uploaded successfully
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  )
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4 text-white">
-      {/* Image Upload Section */}
-      <div>
-        <label htmlFor="image" className="block text-sm font-medium text-slate-200 mb-2">
-          Upload Image *
-        </label>
-        {!imagePreview ? (
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-white/20 rounded-lg p-8 text-center cursor-pointer hover:border-cyan-400/50 hover:bg-white/5 transition-colors"
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              id="image"
-              accept="image/*"
-              onChange={handleImageSelect}
-              className="hidden"
-            />
-            <Upload className="w-12 h-12 mx-auto mb-3 text-slate-400" />
-            <p className="text-sm text-slate-300 mb-1">
-              Click to upload or drag and drop
-            </p>
-            <p className="text-xs text-slate-400">
-              PNG, JPG, GIF up to 10MB
-            </p>
-            {uploading && (
-              <div className="mt-3 flex items-center justify-center gap-2 text-cyan-400">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-sm">Uploading...</span>
-              </div>
+      {/* Image Upload Section - Conditional based on service */}
+      {service === 'VEO 3' ? (
+        <>
+          {/* VEO 3: Two image uploads (Start Frame & End Frame) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderImageUpload(
+              'Start Frame',
+              startFramePreview,
+              uploadingStartFrame,
+              startFrameInputRef,
+              handleStartFrameSelect,
+              handleRemoveStartFrame,
+              startFrameUrl,
+              'startFrame'
+            )}
+            {renderImageUpload(
+              'End Frame',
+              endFramePreview,
+              uploadingEndFrame,
+              endFrameInputRef,
+              handleEndFrameSelect,
+              handleRemoveEndFrame,
+              endFrameUrl,
+              'endFrame'
             )}
           </div>
-        ) : (
-          <div className="relative">
-            <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-white/10">
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="w-full h-full object-contain"
-              />
-              <button
-                type="button"
-                onClick={handleRemoveImage}
-                className="absolute top-2 right-2 p-2 bg-rose-500/90 hover:bg-rose-500 text-white rounded-lg transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            {imageUrl && (
-              <p className="mt-2 text-xs text-emerald-400 text-center">
-                ✓ Image uploaded successfully
-              </p>
-            )}
-          </div>
-        )}
-      </div>
+        </>
+      ) : (
+        <>
+          {/* SORA 2: Single image upload */}
+          {renderImageUpload(
+            'Upload Image',
+            imagePreview,
+            uploading,
+            fileInputRef,
+            handleImageSelect,
+            handleRemoveImage,
+            imageUrl,
+            'image'
+          )}
+        </>
+      )}
 
       <div>
         <label htmlFor="prompt" className="block text-sm font-medium text-slate-200 mb-2">
@@ -373,8 +589,17 @@ export default function ImageToVideoForm({ onSuccess }: ImageToVideoFormProps) {
             onChange={(e) => setModel(e.target.value as 'SORA 2' | 'SORA 2 Pro')}
             className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
           >
-            <option value="SORA 2">SORA 2 (5 Credits)</option>
-            <option value="SORA 2 Pro">SORA 2 Pro (20 Credits)</option>
+            {service === 'VEO 3' ? (
+              <>
+                <option value="SORA 2">VEO 3 (5 Credits)</option>
+                <option value="SORA 2 Pro">VEO 3 Pro (20 Credits)</option>
+              </>
+            ) : (
+              <>
+                <option value="SORA 2">SORA 2 (5 Credits)</option>
+                <option value="SORA 2 Pro">SORA 2 Pro (20 Credits)</option>
+              </>
+            )}
           </select>
         </div>
       </div>
@@ -385,10 +610,15 @@ export default function ImageToVideoForm({ onSuccess }: ImageToVideoFormProps) {
         <div>
           <p className="font-medium mb-1">Estimated Generation Time:</p>
           <p>
-            {model === 'SORA 2' 
-              ? 'SORA 2 videos can take up to 6 minutes to generate.'
-              : 'SORA 2 Pro videos can take up to 15 minutes to generate.'
-            }
+            {service === 'VEO 3' ? (
+              model === 'SORA 2' 
+                ? 'VEO 3 videos can take up to 6 minutes to generate.'
+                : 'VEO 3 Pro videos can take up to 15 minutes to generate.'
+            ) : (
+              model === 'SORA 2' 
+                ? 'SORA 2 videos can take up to 6 minutes to generate.'
+                : 'SORA 2 Pro videos can take up to 15 minutes to generate.'
+            )}
           </p>
         </div>
       </div>
@@ -420,7 +650,11 @@ export default function ImageToVideoForm({ onSuccess }: ImageToVideoFormProps) {
 
       <button
         type="submit"
-        disabled={loading || (!prompt.trim() && !enhancedPrompt.trim()) || !imageUrl}
+        disabled={
+          loading || 
+          (!prompt.trim() && !enhancedPrompt.trim()) || 
+          (service === 'VEO 3' ? (!startFrameUrl || !endFrameUrl) : !imageUrl)
+        }
         className="w-full bg-gradient-to-r from-cyan-500 to-indigo-500 text-white py-2 px-4 rounded-lg font-medium hover:from-cyan-400 hover:to-indigo-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2"
       >
         {loading ? (
@@ -429,7 +663,7 @@ export default function ImageToVideoForm({ onSuccess }: ImageToVideoFormProps) {
             Generating...
           </>
         ) : (
-          `Generate Video (${model === 'SORA 2' ? '5' : '20'} Credits)`
+          `Generate ${service} Video (${model === 'SORA 2' ? '5' : '20'} Credits)`
         )}
       </button>
     </form>

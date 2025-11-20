@@ -22,6 +22,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [showPurchaseModal, setShowPurchaseModal] = useState(false)
   const [purchasing, setPurchasing] = useState(false)
+  const [activeService, setActiveService] = useState<'SORA' | 'VEO 3'>('SORA')
   const [activeTab, setActiveTab] = useState<'text' | 'image'>('text')
   const [parentUrl, setParentUrl] = useState<string | null>(null)
 
@@ -356,6 +357,30 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Video Generation Form */}
           <div className="backdrop-blur-xl bg-white/10 border border-white/10 rounded-2xl shadow-2xl p-6">
+            {/* Service Selector */}
+            <div className="flex gap-2 mb-4 p-1 bg-white/5 rounded-lg">
+              <button
+                onClick={() => setActiveService('SORA')}
+                className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  activeService === 'SORA'
+                    ? 'bg-gradient-to-r from-cyan-500 to-indigo-500 text-white'
+                    : 'text-slate-300 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                SORA
+              </button>
+              <button
+                onClick={() => setActiveService('VEO 3')}
+                className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  activeService === 'VEO 3'
+                    ? 'bg-gradient-to-r from-cyan-500 to-indigo-500 text-white'
+                    : 'text-slate-300 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                VEO 3
+              </button>
+            </div>
+
             {/* Tab Menu */}
             <div className="flex gap-2 mb-6 p-1 bg-white/5 rounded-lg">
               <button
@@ -381,13 +406,15 @@ export default function DashboardPage() {
             </div>
 
             <h2 className="text-xl font-semibold text-white mb-4">
-              {activeTab === 'text' ? 'Generate SORA 2 Video' : 'Generate SORA 2 Video from Image'}
+              {activeTab === 'text' 
+                ? `Generate ${activeService} Video` 
+                : `Generate ${activeService} Video from Image`}
             </h2>
             
             {activeTab === 'text' ? (
-              <VideoForm onSuccess={fetchUser} />
+              <VideoForm onSuccess={fetchUser} service={activeService} />
             ) : (
-              <ImageToVideoForm onSuccess={fetchUser} />
+              <ImageToVideoForm onSuccess={fetchUser} service={activeService} />
             )}
           </div>
 

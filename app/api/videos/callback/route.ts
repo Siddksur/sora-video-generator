@@ -29,7 +29,9 @@ export async function POST(request: NextRequest) {
     if (status === 'failed' && failMsg) {
       // Calculate credit refund based on model (using type assertion for potentially missing field)
       const videoModel = (video as any).model || undefined
-      const creditRefund = getVideoCostCredits(videoModel)
+      // Extract service from model name (e.g., "VEO 3" or "SORA 2")
+      const service = videoModel && videoModel.startsWith('VEO 3') ? 'VEO 3' : 'SORA'
+      const creditRefund = getVideoCostCredits(videoModel, service)
       
       // Update video with error message
       try {

@@ -6,9 +6,10 @@ import { Loader2, Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
 
 interface VideoFormProps {
   onSuccess: () => void
+  service: 'SORA' | 'VEO 3'
 }
 
-export default function VideoForm({ onSuccess }: VideoFormProps) {
+export default function VideoForm({ onSuccess, service }: VideoFormProps) {
   const [prompt, setPrompt] = useState('')
   const [enhancedPrompt, setEnhancedPrompt] = useState('')
   const [aspectRatio, setAspectRatio] = useState<'portrait' | 'landscape'>('landscape')
@@ -77,6 +78,7 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
           prompt: finalPrompt, 
           aspectRatio,
           model,
+          service,
           requestedEmail: notifyChecked ? userEmail : undefined 
         },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -239,8 +241,17 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
             onChange={(e) => setModel(e.target.value as 'SORA 2' | 'SORA 2 Pro')}
             className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
           >
-            <option value="SORA 2">SORA 2 (5 Credits)</option>
-            <option value="SORA 2 Pro">SORA 2 Pro (20 Credits)</option>
+            {service === 'VEO 3' ? (
+              <>
+                <option value="SORA 2">VEO 3 (5 Credits)</option>
+                <option value="SORA 2 Pro">VEO 3 Pro (20 Credits)</option>
+              </>
+            ) : (
+              <>
+                <option value="SORA 2">SORA 2 (5 Credits)</option>
+                <option value="SORA 2 Pro">SORA 2 Pro (20 Credits)</option>
+              </>
+            )}
           </select>
         </div>
       </div>
@@ -251,10 +262,15 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
         <div>
           <p className="font-medium mb-1">Estimated Generation Time:</p>
           <p>
-            {model === 'SORA 2' 
-              ? 'SORA 2 videos can take up to 6 minutes to generate.'
-              : 'SORA 2 Pro videos can take up to 15 minutes to generate.'
-            }
+            {service === 'VEO 3' ? (
+              model === 'SORA 2' 
+                ? 'VEO 3 videos can take up to 6 minutes to generate.'
+                : 'VEO 3 Pro videos can take up to 15 minutes to generate.'
+            ) : (
+              model === 'SORA 2' 
+                ? 'SORA 2 videos can take up to 6 minutes to generate.'
+                : 'SORA 2 Pro videos can take up to 15 minutes to generate.'
+            )}
           </p>
         </div>
       </div>
@@ -295,7 +311,7 @@ export default function VideoForm({ onSuccess }: VideoFormProps) {
             Generating...
           </>
         ) : (
-          `Generate Video (${model === 'SORA 2' ? '5' : '20'} Credits)`
+          `Generate ${service} Video (${model === 'SORA 2' ? '5' : '20'} Credits)`
         )}
       </button>
     </form>
