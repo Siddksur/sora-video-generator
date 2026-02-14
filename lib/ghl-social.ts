@@ -49,6 +49,33 @@ function ghlHeaders(apiKey: string) {
   }
 }
 
+// --- Media Helpers ---
+
+/**
+ * Determine the MIME type from a URL based on its file extension.
+ */
+function getMimeType(url: string): string {
+  const lower = url.toLowerCase().split('?')[0] // strip query params
+  if (lower.endsWith('.mp4')) return 'video/mp4'
+  if (lower.endsWith('.mov')) return 'video/quicktime'
+  if (lower.endsWith('.webm')) return 'video/webm'
+  if (lower.endsWith('.avi')) return 'video/x-msvideo'
+  if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg'
+  if (lower.endsWith('.png')) return 'image/png'
+  if (lower.endsWith('.gif')) return 'image/gif'
+  if (lower.endsWith('.webp')) return 'image/webp'
+  // Default to video/mp4 for our use case (generated videos)
+  return 'video/mp4'
+}
+
+/**
+ * Convert an array of URL strings into the GHL media object format.
+ * GHL requires: [{ url: "...", type: "video/mp4" }]
+ */
+function toMediaObjects(urls: string[]): Array<{ url: string; type: string }> {
+  return urls.map(url => ({ url, type: getMimeType(url) }))
+}
+
 // --- API Functions ---
 
 /**
@@ -144,10 +171,13 @@ export async function createSocialPost(
     const userId = payload.userId || await fetchGhlUserId(apiKey, locationId)
     console.log('[GHL Social] Fetched userId:', userId)
 
+    // GHL requires media as objects with { url, type } (MIME type), NOT plain URL strings
+    const mediaObjects = toMediaObjects(payload.media)
+
     const body: any = {
       accountIds: payload.accountIds,
       summary: payload.summary,
-      media: payload.media,
+      media: mediaObjects,
       type: 'post',
     }
 
