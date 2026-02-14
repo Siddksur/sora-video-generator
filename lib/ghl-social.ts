@@ -142,6 +142,7 @@ export async function createSocialPost(
   try {
     // Step 1: Fetch the GHL user ID (required for post creation)
     const userId = payload.userId || await fetchGhlUserId(apiKey, locationId)
+    console.log('[GHL Social] Fetched userId:', userId)
 
     const body: any = {
       accountIds: payload.accountIds,
@@ -150,16 +151,18 @@ export async function createSocialPost(
       type: 'post',
     }
 
-    // Include userId if we got one
+    // Include userId if we got one (required by GHL)
     if (userId) {
       body.userId = userId
     }
 
-    // Handle scheduling
+    // Handle scheduling - only add these fields if actually scheduling
     if (payload.scheduledDate) {
       body.status = 'scheduled'
       body.scheduleDate = payload.scheduledDate
     }
+
+    console.log('[GHL Social] Create post body:', JSON.stringify(body, null, 2).substring(0, 1000))
 
     const response = await axios.post(
       `${GHL_API_BASE}/social-media-posting/${locationId}/posts`,
@@ -189,10 +192,8 @@ export async function createSocialPost(
 
 /**
  * Upload a video from an external URL to GHL media storage.
- * Falls back approach if direct URLs are not accepted by the Social Planner.
+ * Uses hosted=true with fileUrl so GHL fetches the video itself.
  * Requires scope: medias.write
- *
- * Downloads the video from the external URL and uploads it to GHL.
  */
 export async function uploadMediaToGhl(
   apiKey: string,
@@ -200,24 +201,15 @@ export async function uploadMediaToGhl(
   videoUrl: string
 ): Promise<UploadMediaResult> {
   try {
-    // Step 1: Download the video from the external URL
-    const videoResponse = await axios.get(videoUrl, {
-      responseType: 'arraybuffer',
-      timeout: 120000, // 2 minute timeout for large videos
-    })
-
-    const videoBuffer = Buffer.from(videoResponse.data)
-    const contentType = videoResponse.headers['content-type'] || 'video/mp4'
-
-    // Step 2: Create a FormData-like upload to GHL media storage
+    // GHL's upload-file endpoint with hosted=true expects a fileUrl
+    // so GHL downloads the file from the URL themselves
     const FormData = (await import('form-data')).default
     const formData = new FormData()
-    formData.append('file', videoBuffer, {
-      filename: `video-${Date.now()}.mp4`,
-      contentType,
-    })
     formData.append('hosted', 'true')
-    formData.append('fileProcessingType', 'video')
+    formData.append('fileUrl', videoUrl)
+    formData.append('name', `video-${Date.now()}.mp4`)
+
+    console.log('[GHL Social] Uploading media with fileUrl:', videoUrl.substring(0, 80) + '...')
 
     const uploadResponse = await axios.post(
       `${GHL_API_BASE}/medias/upload-file`,
@@ -228,13 +220,14 @@ export async function uploadMediaToGhl(
           ...formData.getHeaders(),
         },
         params: { locationId },
-        timeout: 180000, // 3 minute timeout for upload
-        maxContentLength: 500 * 1024 * 1024, // 500MB
-        maxBodyLength: 500 * 1024 * 1024,
+        timeout: 180000, // 3 minute timeout
       }
     )
 
+    console.log('[GHL Social] Upload response:', JSON.stringify(uploadResponse.data).substring(0, 500))
+
     const uploadedUrl = uploadResponse.data?.url || uploadResponse.data?.fileUrl
+      || uploadResponse.data?.uploadedFileUrl
     if (!uploadedUrl) {
       return { success: false, error: 'Upload succeeded but no URL was returned.' }
     }
