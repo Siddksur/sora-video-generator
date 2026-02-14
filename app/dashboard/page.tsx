@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import axios from 'axios'
-import { CreditCard, LogOut, Settings, ChevronDown } from 'lucide-react'
+import { CreditCard, LogOut, Settings } from 'lucide-react'
 import VideoForm from '@/components/VideoForm'
 import ImageToVideoForm from '@/components/ImageToVideoForm'
 import VideoDashboard from '@/components/VideoDashboard'
@@ -28,7 +28,6 @@ export default function DashboardPage() {
   const [activeService, setActiveService] = useState<'SORA' | 'VEO 3' | 'KLING'>('SORA')
   const [activeTab, setActiveTab] = useState<'text' | 'image'>('text')
   const [parentUrl, setParentUrl] = useState<string | null>(null)
-  const [showSettingsMenu, setShowSettingsMenu] = useState(false)
 
   // Listen for postMessage from parent window (optional, non-blocking)
   useEffect(() => {
@@ -349,49 +348,14 @@ export default function DashboardPage() {
                 Buy Credits
               </button>
 
-              {/* Settings Dropdown */}
-              <div className="relative">
-                <button
-                  onClick={() => setShowSettingsMenu(!showSettingsMenu)}
-                  className="text-slate-300 hover:text-white text-sm flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-white/10 transition-all"
-                >
-                  <Settings className="w-4 h-4" />
-                  <span className="hidden sm:inline">Settings</span>
-                  <ChevronDown className={`w-3 h-3 transition-transform ${showSettingsMenu ? 'rotate-180' : ''}`} />
-                </button>
-                {showSettingsMenu && (
-                  <>
-                    {/* Backdrop to close menu */}
-                    <div
-                      className="fixed inset-0 z-20"
-                      onClick={() => setShowSettingsMenu(false)}
-                    />
-                    <div className="absolute right-0 mt-2 w-52 backdrop-blur-xl bg-slate-800/95 border border-white/10 rounded-xl shadow-2xl z-30 overflow-hidden">
-                      <button
-                        onClick={() => {
-                          setShowSettingsMenu(false)
-                          router.push('/dashboard/settings?tab=billing')
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
-                      >
-                        <CreditCard className="w-4 h-4 text-cyan-300" />
-                        Billing
-                      </button>
-                      <div className="border-t border-white/5" />
-                      <button
-                        onClick={() => {
-                          setShowSettingsMenu(false)
-                          router.push('/dashboard/settings?tab=ghl')
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
-                      >
-                        <Settings className="w-4 h-4 text-cyan-300" />
-                        GHL Integration
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
+              {/* Settings */}
+              <button
+                onClick={() => router.push('/dashboard/settings')}
+                className="text-slate-300 hover:text-white text-sm flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-white/10 transition-all"
+              >
+                <Settings className="w-4 h-4" />
+                <span className="hidden sm:inline">Settings</span>
+              </button>
 
               <button
                 onClick={handleLogout}
