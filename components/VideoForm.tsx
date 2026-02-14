@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { Loader2, Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
+import { getAuthHeaders, getStoredUser } from '@/lib/api'
 
 interface VideoFormProps {
   onSuccess: () => void
@@ -24,13 +25,8 @@ export default function VideoForm({ onSuccess, service }: VideoFormProps) {
   const [exampleExpanded, setExampleExpanded] = useState(false)
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('user')
-      if (raw) {
-        const u = JSON.parse(raw)
-        if (u?.email) setUserEmail(u.email)
-      }
-    } catch {}
+    const u = getStoredUser()
+    if (u?.email) setUserEmail(u.email)
   }, [])
 
   const handleEnhancePrompt = async () => {
@@ -72,7 +68,6 @@ export default function VideoForm({ onSuccess, service }: VideoFormProps) {
     }
 
     try {
-      const token = localStorage.getItem('token')
       await axios.post('/api/videos/generate', 
         { 
           prompt: finalPrompt, 
@@ -81,7 +76,7 @@ export default function VideoForm({ onSuccess, service }: VideoFormProps) {
           service,
           requestedEmail: notifyChecked ? userEmail : undefined 
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: getAuthHeaders() }
       )
 
       setSuccess(true)

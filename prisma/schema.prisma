@@ -16,6 +16,8 @@ model User {
   email          String   @unique
   passwordHash   String   @map("password_hash")
   creditsBalance Int      @default(0) @map("credits_balance")
+  locationId     String?  @unique @map("location_id") // GHL subaccount location ID
+  authType       String   @default("password") @map("auth_type") // "password" | "ghl"
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
@@ -24,6 +26,18 @@ model User {
   creditHistory CreditHistory[]
 
   @@map("users")
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  locationId String   @map("location_id")
+  tokenHash  String   @map("token_hash")
+  createdAt  DateTime @default(now()) @map("created_at")
+  expiresAt  DateTime @map("expires_at")
+
+  @@index([tokenHash])
+  @@index([locationId])
+  @@map("sessions")
 }
 
 model Transaction {

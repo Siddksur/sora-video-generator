@@ -7,6 +7,7 @@ import { CreditCard, LogOut } from 'lucide-react'
 import VideoForm from '@/components/VideoForm'
 import ImageToVideoForm from '@/components/ImageToVideoForm'
 import VideoDashboard from '@/components/VideoDashboard'
+import { getAuthToken, getAuthHeaders, clearAuth } from '@/lib/api'
 
 interface User {
   id: string
@@ -79,7 +80,7 @@ export default function DashboardPage() {
   }, [searchParams])
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
+    const token = getAuthToken()
     if (!token) {
       router.push('/')
       return
@@ -137,14 +138,12 @@ export default function DashboardPage() {
 
   const fetchUser = async () => {
     try {
-      const token = localStorage.getItem('token')
       const response = await axios.get('/api/auth/profile', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: getAuthHeaders()
       })
       setUser(response.data.user)
     } catch (error) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
+      clearAuth()
       router.push('/')
     } finally {
       setLoading(false)
@@ -152,15 +151,14 @@ export default function DashboardPage() {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
+    clearAuth()
     router.push('/')
   }
 
   const handlePurchase = async (packageIndex: number) => {
     setPurchasing(true)
     try {
-      const token = localStorage.getItem('token')
+      const token = getAuthToken()
       
       // Detect iframe context and get parent URL
       const isInIframe = window.self !== window.top

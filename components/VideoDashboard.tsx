@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { Loader2, Download, Clock, CheckCircle, XCircle, Trash2, AlertTriangle } from 'lucide-react'
+import { getAuthHeaders } from '@/lib/api'
 
 interface Video {
   id: string
@@ -34,9 +35,8 @@ export default function VideoDashboard() {
 
   const fetchVideos = async () => {
     try {
-      const token = localStorage.getItem('token')
       const response = await axios.get('/api/videos/list', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: getAuthHeaders()
       })
       setVideos(response.data.videos)
     } catch (error) {
@@ -93,9 +93,8 @@ export default function VideoDashboard() {
     if (!confirm('Delete this video? This cannot be undone.')) return
     setDeletingId(id)
     try {
-      const token = localStorage.getItem('token')
       await axios.delete(`/api/videos/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: getAuthHeaders()
       })
       setVideos(videos.filter(v => v.id !== id))
       // Remove from expanded prompts if it was expanded

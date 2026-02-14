@@ -1,24 +1,61 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import axios from 'axios'
 
 export default function AuthPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [ghlLoading, setGhlLoading] = useState(false)
+  const [accessDenied, setAccessDenied] = useState(false)
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token')
-      if (token) router.push('/dashboard')
+    if (typeof window === 'undefined') return
+
+    const locationId = searchParams.get('location_id')
+
+    if (locationId) {
+      // GHL flow: auto-login via location_id
+      const isInIframe = window.self !== window.top
+      const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
+
+      if (!isInIframe && !isDevMode) {
+        // Direct access with location_id in production — block it
+        setAccessDenied(true)
+        return
+      }
+
+      // Init GHL session
+      setGhlLoading(true)
+      axios
+        .get(`/api/init?location_id=${encodeURIComponent(locationId)}`)
+        .then((response) => {
+          const { session_token, user } = response.data
+          // Store session token in sessionStorage (not localStorage)
+          sessionStorage.setItem('agh_session_token', session_token)
+          sessionStorage.setItem('user', JSON.stringify(user))
+          router.push('/dashboard')
+        })
+        .catch((err) => {
+          console.error('GHL init failed:', err)
+          const errorMsg = err.response?.data?.error || 'Failed to initialize session'
+          setError(errorMsg)
+          setGhlLoading(false)
+        })
+      return
     }
-  }, [router])
+
+    // Normal flow: check existing JWT token
+    const token = localStorage.getItem('token')
+    if (token) router.push('/dashboard')
+  }, [router, searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -49,6 +86,41 @@ export default function AuthPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // GHL loading state
+  if (ghlLoading) {
+    return (
+      <div className="min-h-screen relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900 via-slate-900 to-black" />
+        <div className="min-h-screen flex items-center justify-center p-6">
+          <div className="text-center">
+            <div className="w-8 h-8 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin mx-auto mb-4" />
+            <p className="text-white text-lg font-medium">Setting up your session...</p>
+            <p className="text-slate-400 text-sm mt-2">Please wait while we connect your account.</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Access denied state (someone trying to access with location_id outside GHL)
+  if (accessDenied) {
+    return (
+      <div className="min-h-screen relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900 via-slate-900 to-black" />
+        <div className="min-h-screen flex items-center justify-center p-6">
+          <div className="w-full max-w-md backdrop-blur-xl bg-white/10 border border-white/10 rounded-2xl shadow-2xl p-8 text-center">
+            <div className="text-rose-400 text-5xl mb-4">&#x26D4;</div>
+            <h1 className="text-2xl font-bold text-white mb-2">Access Denied</h1>
+            <p className="text-slate-300 text-sm">
+              This app must be accessed from within your GoHighLevel account.
+              Please open it from the sidebar menu inside your subaccount.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import axios from 'axios'
 import { Loader2, Sparkles, ChevronDown, ChevronUp, Upload, X, Image as ImageIcon } from 'lucide-react'
+import { getAuthHeaders, getStoredUser } from '@/lib/api'
 
 interface ImageToVideoFormProps {
   onSuccess: () => void
@@ -41,13 +42,8 @@ export default function ImageToVideoForm({ onSuccess, service }: ImageToVideoFor
   const endFrameInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('user')
-      if (raw) {
-        const u = JSON.parse(raw)
-        if (u?.email) setUserEmail(u.email)
-      }
-    } catch {}
+    const u = getStoredUser()
+    if (u?.email) setUserEmail(u.email)
   }, [])
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,13 +142,12 @@ export default function ImageToVideoForm({ onSuccess, service }: ImageToVideoFor
   const handleImageUpload = async (file: File) => {
     setUploading(true)
     try {
-      const token = localStorage.getItem('token')
       const formData = new FormData()
       formData.append('image', file)
 
       const response = await axios.post('/api/upload', formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          ...getAuthHeaders(),
           'Content-Type': 'multipart/form-data'
         }
       })
@@ -170,13 +165,12 @@ export default function ImageToVideoForm({ onSuccess, service }: ImageToVideoFor
   const handleStartFrameUpload = async (file: File) => {
     setUploadingStartFrame(true)
     try {
-      const token = localStorage.getItem('token')
       const formData = new FormData()
       formData.append('image', file)
 
       const response = await axios.post('/api/upload', formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          ...getAuthHeaders(),
           'Content-Type': 'multipart/form-data'
         }
       })
@@ -194,13 +188,12 @@ export default function ImageToVideoForm({ onSuccess, service }: ImageToVideoFor
   const handleEndFrameUpload = async (file: File) => {
     setUploadingEndFrame(true)
     try {
-      const token = localStorage.getItem('token')
       const formData = new FormData()
       formData.append('image', file)
 
       const response = await axios.post('/api/upload', formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          ...getAuthHeaders(),
           'Content-Type': 'multipart/form-data'
         }
       })
@@ -297,7 +290,6 @@ export default function ImageToVideoForm({ onSuccess, service }: ImageToVideoFor
     }
 
     try {
-      const token = localStorage.getItem('token')
       const payload: any = {
         prompt: finalPrompt,
         aspectRatio,
@@ -315,7 +307,7 @@ export default function ImageToVideoForm({ onSuccess, service }: ImageToVideoFor
       }
 
       await axios.post('/api/videos/generate', payload, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: getAuthHeaders()
       })
 
       setSuccess(true)
