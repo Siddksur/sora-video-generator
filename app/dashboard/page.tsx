@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import axios from 'axios'
-import { CreditCard, LogOut } from 'lucide-react'
+import { CreditCard, LogOut, Settings, ChevronDown } from 'lucide-react'
 import VideoForm from '@/components/VideoForm'
 import ImageToVideoForm from '@/components/ImageToVideoForm'
 import VideoDashboard from '@/components/VideoDashboard'
@@ -14,6 +14,8 @@ interface User {
   username: string
   email: string
   creditsBalance: number
+  businessName?: string | null
+  ghlConnected?: boolean
 }
 
 export default function DashboardPage() {
@@ -26,6 +28,7 @@ export default function DashboardPage() {
   const [activeService, setActiveService] = useState<'SORA' | 'VEO 3' | 'KLING'>('SORA')
   const [activeTab, setActiveTab] = useState<'text' | 'image'>('text')
   const [parentUrl, setParentUrl] = useState<string | null>(null)
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false)
 
   // Listen for postMessage from parent window (optional, non-blocking)
   useEffect(() => {
@@ -323,9 +326,16 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img src="https://statics.myclickfunnels.com/workspace/JGrmMP/image/16250088/file/f56b74313c1d6a8f3c0774060784aa1d.png" alt="LeadCallr AI" className="h-7 w-7 rounded" />
-              <h1 className="text-lg sm:text-xl font-semibold bg-gradient-to-r from-white via-cyan-200 to-indigo-200 bg-clip-text text-transparent">
-                LeadCallr AI
-              </h1>
+              <div>
+                <h1 className="text-lg sm:text-xl font-semibold bg-gradient-to-r from-white via-cyan-200 to-indigo-200 bg-clip-text text-transparent">
+                  LeadCallr AI
+                </h1>
+                {user.businessName && (
+                  <p className="text-xs text-cyan-300/80 -mt-0.5">
+                    Welcome, {user.businessName}
+                  </p>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 border border-white/10 text-white">
@@ -338,12 +348,57 @@ export default function DashboardPage() {
               >
                 Buy Credits
               </button>
+
+              {/* Settings Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowSettingsMenu(!showSettingsMenu)}
+                  className="text-slate-300 hover:text-white text-sm flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-white/10 transition-all"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span className="hidden sm:inline">Settings</span>
+                  <ChevronDown className={`w-3 h-3 transition-transform ${showSettingsMenu ? 'rotate-180' : ''}`} />
+                </button>
+                {showSettingsMenu && (
+                  <>
+                    {/* Backdrop to close menu */}
+                    <div
+                      className="fixed inset-0 z-20"
+                      onClick={() => setShowSettingsMenu(false)}
+                    />
+                    <div className="absolute right-0 mt-2 w-52 backdrop-blur-xl bg-slate-800/95 border border-white/10 rounded-xl shadow-2xl z-30 overflow-hidden">
+                      <button
+                        onClick={() => {
+                          setShowSettingsMenu(false)
+                          router.push('/dashboard/settings?tab=billing')
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+                      >
+                        <CreditCard className="w-4 h-4 text-cyan-300" />
+                        Billing
+                      </button>
+                      <div className="border-t border-white/5" />
+                      <button
+                        onClick={() => {
+                          setShowSettingsMenu(false)
+                          router.push('/dashboard/settings?tab=ghl')
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+                      >
+                        <Settings className="w-4 h-4 text-cyan-300" />
+                        GHL Integration
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+
               <button
                 onClick={handleLogout}
                 className="text-slate-300 hover:text-white text-sm flex items-center gap-2"
               >
                 <LogOut className="w-4 h-4" />
-                Logout
+                <span className="hidden sm:inline">Logout</span>
               </button>
             </div>
           </div>

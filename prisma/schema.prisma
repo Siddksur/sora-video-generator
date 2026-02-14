@@ -21,11 +21,31 @@ model User {
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
-  transactions  Transaction[]
-  videos        Video[]
-  creditHistory CreditHistory[]
+  transactions   Transaction[]
+  videos         Video[]
+  creditHistory  CreditHistory[]
+  ghlIntegration GhlIntegration?
 
   @@map("users")
+}
+
+model GhlIntegration {
+  id            String   @id @default(cuid())
+  userId        String   @unique @map("user_id")
+  apiKey        String   @map("api_key")
+  locationId    String   @map("location_id")
+  businessName  String?  @map("business_name")
+  businessEmail String?  @map("business_email")
+  businessPhone String?  @map("business_phone")
+  locationName  String?  @map("location_name")
+  locationEmail String?  @map("location_email")
+  isConnected   Boolean  @default(false) @map("is_connected")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("ghl_integrations")
 }
 
 model Session {
