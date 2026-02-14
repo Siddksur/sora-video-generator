@@ -23,7 +23,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [showPurchaseModal, setShowPurchaseModal] = useState(false)
   const [purchasing, setPurchasing] = useState(false)
-  const [activeService, setActiveService] = useState<'SORA' | 'VEO 3'>('SORA')
+  const [activeService, setActiveService] = useState<'SORA' | 'VEO 3' | 'KLING'>('SORA')
   const [activeTab, setActiveTab] = useState<'text' | 'image'>('text')
   const [parentUrl, setParentUrl] = useState<string | null>(null)
 
@@ -377,42 +377,66 @@ export default function DashboardPage() {
               >
                 VEO 3
               </button>
-            </div>
-
-            {/* Tab Menu */}
-            <div className="flex gap-2 mb-6 p-1 bg-white/5 rounded-lg">
               <button
-                onClick={() => setActiveTab('text')}
+                onClick={() => setActiveService('KLING')}
                 className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === 'text'
-                    ? 'bg-cyan-500 text-white'
+                  activeService === 'KLING'
+                    ? 'bg-gradient-to-r from-cyan-500 to-indigo-500 text-white'
                     : 'text-slate-300 hover:text-white hover:bg-white/10'
                 }`}
               >
-                Text to Video
-              </button>
-              <button
-                onClick={() => setActiveTab('image')}
-                className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === 'image'
-                    ? 'bg-cyan-500 text-white'
-                    : 'text-slate-300 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                Image to Video
+                Kling
               </button>
             </div>
 
-            <h2 className="text-xl font-semibold text-white mb-4">
-              {activeTab === 'text' 
-                ? `Generate ${activeService} Video` 
-                : `Generate ${activeService} Video from Image`}
-            </h2>
-            
-            {activeTab === 'text' ? (
-              <VideoForm onSuccess={fetchUser} service={activeService} />
+            {activeService === 'KLING' ? (
+              /* Kling AI - Coming Soon Placeholder */
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="text-5xl mb-4">🎬</div>
+                <h2 className="text-2xl font-bold text-white mb-2">Kling AI</h2>
+                <p className="text-slate-300 text-sm mb-1">Coming Soon</p>
+                <p className="text-slate-400 text-xs max-w-xs">
+                  Kling AI video generation is currently under development. Stay tuned for updates!
+                </p>
+              </div>
             ) : (
-              <ImageToVideoForm onSuccess={fetchUser} service={activeService} />
+              <>
+                {/* Tab Menu */}
+                <div className="flex gap-2 mb-6 p-1 bg-white/5 rounded-lg">
+                  <button
+                    onClick={() => setActiveTab('text')}
+                    className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      activeTab === 'text'
+                        ? 'bg-cyan-500 text-white'
+                        : 'text-slate-300 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    Text to Video
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('image')}
+                    className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      activeTab === 'image'
+                        ? 'bg-cyan-500 text-white'
+                        : 'text-slate-300 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    Image to Video
+                  </button>
+                </div>
+
+                <h2 className="text-xl font-semibold text-white mb-4">
+                  {activeTab === 'text' 
+                    ? `Generate ${activeService} Video` 
+                    : `Generate ${activeService} Video from Image`}
+                </h2>
+                
+                {activeTab === 'text' ? (
+                  <VideoForm onSuccess={fetchUser} service={activeService} />
+                ) : (
+                  <ImageToVideoForm onSuccess={fetchUser} service={activeService} />
+                )}
+              </>
             )}
           </div>
 
