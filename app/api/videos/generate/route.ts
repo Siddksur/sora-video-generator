@@ -142,15 +142,29 @@ export async function POST(request: NextRequest) {
         formattedAspectRatio = formattedAspectRatio === 'portrait' ? '9:16' : '16:9'
       }
 
+      // Get the real email from GHL integration if connected (overrides stale user.email)
+      let effectiveEmail = user.email
+      try {
+        const ghlIntegration = await db.ghlIntegration.findUnique({
+          where: { userId: user.id },
+          select: { businessEmail: true, locationEmail: true, isConnected: true },
+        })
+        if (ghlIntegration?.isConnected) {
+          effectiveEmail = ghlIntegration.businessEmail || ghlIntegration.locationEmail || user.email
+        }
+      } catch (e) {
+        // GHL lookup failed, fall back to user.email
+      }
+
       // Prepare webhook payload
       const webhookPayload: any = {
         video_id: video.id,
         user_id: user.id,
-        user_email: user.email,
+        user_email: effectiveEmail,
         video_prompt: prompt,
         additional_details: additionalDetails || '',
         callback_url: callbackUrl,
-        requested_email: requestedEmail || user.email,
+        requested_email: requestedEmail || effectiveEmail,
         aspect_ratio: formattedAspectRatio,
         model: webhookModel,
         service: activeService

@@ -13,12 +13,14 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch GHL integration info for welcome message
+    // Fetch GHL integration info for welcome message and real email
     const ghlIntegration = await db.ghlIntegration.findUnique({
       where: { userId: user.id },
       select: {
         businessName: true,
+        businessEmail: true,
         locationName: true,
+        locationEmail: true,
         isConnected: true,
       },
     })
@@ -27,11 +29,16 @@ export async function GET(request: NextRequest) {
       ? (ghlIntegration.businessName || ghlIntegration.locationName || null)
       : null
 
+    // Use the GHL Business Profile email when connected, fall back to user email
+    const email = (ghlIntegration?.isConnected && (ghlIntegration.businessEmail || ghlIntegration.locationEmail))
+      ? (ghlIntegration.businessEmail || ghlIntegration.locationEmail)!
+      : user.email
+
     return NextResponse.json({
       user: {
         id: user.id,
         username: user.username,
-        email: user.email,
+        email,
         creditsBalance: user.creditsBalance,
         businessName,
         ghlConnected: ghlIntegration?.isConnected || false,
