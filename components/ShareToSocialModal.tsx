@@ -247,7 +247,7 @@ export default function ShareToSocialModal({
             <>
               {/* Select Accounts */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-white mb-2">
                   Select Accounts
                 </label>
                 <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -289,7 +289,7 @@ export default function ShareToSocialModal({
 
               {/* Caption */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                <label className="block text-sm font-medium text-white mb-1.5">
                   Caption
                 </label>
                 <textarea
@@ -297,16 +297,16 @@ export default function ShareToSocialModal({
                   onChange={(e) => setCaption(e.target.value)}
                   rows={3}
                   placeholder="Write a caption for your post..."
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/40 focus:border-cyan-500/40 text-sm resize-none"
+                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/40 focus:border-cyan-500/40 text-sm resize-none"
                 />
-                <div className="text-xs text-slate-500 mt-1 text-right">
+                <div className="text-xs text-slate-400 mt-1 text-right">
                   {caption.length} characters
                 </div>
               </div>
 
               {/* Schedule Toggle */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-white mb-2">
                   When to Post
                 </label>
                 <div className="flex gap-2 p-1 bg-white/5 rounded-lg">
@@ -341,13 +341,13 @@ export default function ShareToSocialModal({
                       value={scheduledDate}
                       onChange={(e) => setScheduledDate(e.target.value)}
                       min={new Date().toISOString().split('T')[0]}
-                      className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                      className="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40 [color-scheme:dark]"
                     />
                     <input
                       type="time"
                       value={scheduledTime}
                       onChange={(e) => setScheduledTime(e.target.value)}
-                      className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                      className="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40 [color-scheme:dark]"
                     />
                   </div>
                 )}
@@ -355,7 +355,7 @@ export default function ShareToSocialModal({
 
               {/* Video Preview Thumbnail */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                <label className="block text-sm font-medium text-white mb-1.5">
                   Video
                 </label>
                 <div className="relative w-full aspect-video bg-black/50 rounded-lg overflow-hidden border border-white/10">

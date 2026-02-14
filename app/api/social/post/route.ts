@@ -77,7 +77,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Try Option A first: Direct URL in the media array
+    // Try creating the social post with the video URL directly
     let mediaUrls = [video.videoUrl]
+
+    console.log('[Social Post] Attempting with direct video URL:', video.videoUrl.substring(0, 80) + '...')
 
     let result = await createSocialPost(integration.apiKey, integration.locationId, {
       accountIds,
@@ -86,15 +89,19 @@ export async function POST(request: NextRequest) {
       scheduledDate: scheduledDate || undefined,
     })
 
+    console.log('[Social Post] Direct URL result:', JSON.stringify(result))
+
     // If direct URL failed, try Option B: Upload to GHL media storage first
-    if (!result.success && result.error?.includes('Bad request')) {
-      console.log('Direct URL posting failed, attempting upload to GHL media storage...')
+    if (!result.success) {
+      console.log('[Social Post] Direct URL failed, attempting GHL media upload fallback...')
 
       const uploadResult = await uploadMediaToGhl(
         integration.apiKey,
         integration.locationId,
         video.videoUrl
       )
+
+      console.log('[Social Post] Upload result:', JSON.stringify({ success: uploadResult.success, url: uploadResult.url?.substring(0, 80), error: uploadResult.error }))
 
       if (uploadResult.success && uploadResult.url) {
         mediaUrls = [uploadResult.url]
@@ -104,6 +111,7 @@ export async function POST(request: NextRequest) {
           media: mediaUrls,
           scheduledDate: scheduledDate || undefined,
         })
+        console.log('[Social Post] Retry with uploaded URL result:', JSON.stringify(result))
       } else {
         return NextResponse.json(
           { error: uploadResult.error || 'Failed to upload video to GHL media storage.' },

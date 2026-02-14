@@ -241,10 +241,16 @@ export async function uploadMediaToGhl(
 
     return { success: true, url: uploadedUrl }
   } catch (error: any) {
+    console.error('Failed to upload media to GHL:', error.message)
+    console.error('Upload error status:', error.response?.status)
+    console.error('Upload error body:', JSON.stringify(error.response?.data)?.substring(0, 500))
     if (error.response?.status === 401) {
       return { success: false, error: 'Unauthorized. Check your API key and medias.write scope.' }
     }
-    console.error('Failed to upload media to GHL:', error.message)
+    if (error.response?.status === 400) {
+      const msg = error.response?.data?.message || error.response?.data?.msg || ''
+      return { success: false, error: `Media upload failed: ${msg || 'Bad request. The video URL may be inaccessible.'}` }
+    }
     return { success: false, error: 'Failed to upload video to GHL media storage.' }
   }
 }
