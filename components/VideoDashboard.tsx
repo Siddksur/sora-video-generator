@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import { Loader2, Download, Clock, CheckCircle, XCircle, Trash2, AlertTriangle } from 'lucide-react'
+import { Loader2, Download, Clock, CheckCircle, XCircle, Trash2, AlertTriangle, Share2 } from 'lucide-react'
 import { getAuthHeaders } from '@/lib/api'
+import ShareToSocialModal from './ShareToSocialModal'
 
 interface Video {
   id: string
@@ -23,6 +24,7 @@ export default function VideoDashboard() {
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [expandedPrompts, setExpandedPrompts] = useState<Set<string>>(new Set())
+  const [shareVideo, setShareVideo] = useState<Video | null>(null)
 
   useEffect(() => {
     fetchVideos()
@@ -151,6 +153,7 @@ export default function VideoDashboard() {
   }
 
   return (
+    <>
     <div className="space-y-4 max-h-[600px] overflow-y-auto">
       {videos.map((video) => (
         <div
@@ -205,7 +208,14 @@ export default function VideoDashboard() {
                 </video>
               </div>
               <div className="flex items-center justify-between">
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={() => setShareVideo(video)}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-indigo-500 text-white text-sm rounded-lg hover:from-cyan-400 hover:to-indigo-400 transition-all shadow-lg shadow-cyan-500/20"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    Share to Social
+                  </button>
                   <a
                     href="https://business.facebook.com/adsmanager"
                     target="_blank"
@@ -219,7 +229,7 @@ export default function VideoDashboard() {
                     className="flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/10 text-white text-sm rounded-lg hover:bg-white/20 transition-colors"
                   >
                     <Download className="w-4 h-4" />
-                    Download Video
+                    Download
                   </button>
                 </div>
                 <button
@@ -284,6 +294,17 @@ export default function VideoDashboard() {
         </div>
       ))}
     </div>
+
+    {/* Share to Social Modal */}
+    {shareVideo && shareVideo.videoUrl && (
+      <ShareToSocialModal
+        videoId={shareVideo.id}
+        videoUrl={shareVideo.videoUrl}
+        prompt={shareVideo.prompt}
+        onClose={() => setShareVideo(null)}
+      />
+    )}
+    </>
   )
 }
 
