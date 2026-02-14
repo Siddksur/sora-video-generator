@@ -126,19 +126,18 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Also update the user's email if it's a placeholder
-    if (user.email?.includes('@ghl.placeholder') && businessEmail) {
-      const realEmail = businessEmail
-      if (realEmail) {
-        try {
-          await db.user.update({
-            where: { id: user.id },
-            data: { email: realEmail },
-          })
-        } catch (emailError) {
-          // Email might conflict with another user, log but don't fail
-          console.warn('Could not update user email:', emailError)
-        }
+    // Update the user's email with the real one from GHL Business Profile
+    // This replaces placeholder emails (e.g. @ghl.placeholder) and stale emails
+    // that came from the agency API during init
+    if (businessEmail && businessEmail !== user.email) {
+      try {
+        await db.user.update({
+          where: { id: user.id },
+          data: { email: businessEmail },
+        })
+      } catch (emailError) {
+        // Email might conflict with another user, log but don't fail
+        console.warn('Could not update user email:', emailError)
       }
     }
 

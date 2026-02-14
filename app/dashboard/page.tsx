@@ -144,6 +144,13 @@ export default function DashboardPage() {
         headers: getAuthHeaders()
       })
       setUser(response.data.user)
+      // Keep stored user in sync so components (VideoForm, etc.) get fresh data
+      try {
+        const storage = localStorage.getItem('token') ? localStorage : sessionStorage
+        storage.setItem('user', JSON.stringify(response.data.user))
+      } catch (e) {
+        // Storage might be blocked in iframe context
+      }
     } catch (error) {
       clearAuth()
       router.push('/')
