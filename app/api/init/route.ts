@@ -90,7 +90,8 @@ export async function GET(request: NextRequest) {
     })
 
     if (!user) {
-      // Create a new user for this GHL location
+      // Create a new user for this GHL location with 25 welcome credits
+      const GHL_WELCOME_CREDITS = 25
       const username = `ghl_${locationId}`
       const email = `location_${locationId}@ghl.placeholder`
       // Generate a random password hash (this user will never log in with a password)
@@ -104,13 +105,23 @@ export async function GET(request: NextRequest) {
           passwordHash,
           locationId,
           authType: 'ghl',
-          creditsBalance: 0,
+          creditsBalance: GHL_WELCOME_CREDITS,
         },
         select: {
           id: true,
           username: true,
           email: true,
           creditsBalance: true,
+        },
+      })
+
+      // Record the welcome credits in credit history
+      await db.creditHistory.create({
+        data: {
+          userId: user.id,
+          amount: GHL_WELCOME_CREDITS,
+          transactionType: 'purchase',
+          description: `Welcome bonus: ${GHL_WELCOME_CREDITS} free credits for new GHL subaccount`,
         },
       })
     }
