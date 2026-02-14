@@ -24,6 +24,7 @@ export interface CreatePostPayload {
   summary: string
   media: string[]
   scheduledDate?: string // ISO 8601 date string for scheduling
+  userId?: string // GHL user ID (fetched from /users/ endpoint)
 }
 
 export interface CreatePostResult {
@@ -64,15 +65,18 @@ export async function getConnectedAccounts(
       { headers: ghlHeaders(apiKey) }
     )
 
-    // The response may contain accounts at different paths depending on API version
-    const rawAccounts = response.data?.accounts || response.data?.data || response.data || []
+    // GHL response structure: { success, statusCode, message, results: { accounts: [], groups: [] } }
+    const rawAccounts = response.data?.results?.accounts
+      || response.data?.accounts
+      || response.data?.data
+      || []
     const accountList = Array.isArray(rawAccounts) ? rawAccounts : []
 
     const accounts: SocialAccount[] = accountList.map((acc: any) => ({
       id: acc.id || acc._id,
-      name: acc.name || acc.pageName || acc.accountName || 'Unknown Account',
-      platform: (acc.platform || acc.type || 'unknown').toLowerCase(),
-      avatar: acc.avatar || acc.profilePicture || acc.thumbnail || undefined,
+      name: acc.name || acc.pageName || acc.accountName || acc.meta?.name || 'Unknown Account',
+      platform: (acc.platform || acc.type || acc.channel || 'unknown').toLowerCase(),
+      avatar: acc.avatar || acc.profilePicture || acc.thumbnail || acc.meta?.picture || undefined,
       type: acc.type || acc.accountType || undefined,
     }))
 
@@ -90,8 +94,41 @@ export async function getConnectedAccounts(
 }
 
 /**
+ * Fetch the GHL user ID for a location.
+ * The user ID is required when creating social media posts.
+ * Requires scope: users.readonly
+ */
+export async function fetchGhlUserId(
+  apiKey: string,
+  locationId: string
+): Promise<string | null> {
+  try {
+    const response = await axios.get(
+      `${GHL_API_BASE}/users/`,
+      {
+        params: { locationId },
+        headers: ghlHeaders(apiKey),
+      }
+    )
+
+    const users = response.data?.users || response.data?.results?.users || response.data || []
+    if (Array.isArray(users) && users.length > 0) {
+      return users[0].id || users[0]._id || null
+    }
+    return null
+  } catch (error: any) {
+    console.error('Failed to fetch GHL user ID:', error.message)
+    return null
+  }
+}
+
+/**
  * Create a social media post via the GHL Social Planner API.
- * Requires scope: socialplanner/post.write
+ * Matches the proven working pattern:
+ *   1. Fetch userId via GET /users/?locationId=...
+ *   2. POST /social-media-posting/:locationId/posts with type, userId, accountIds, summary, media
+ *
+ * Requires scopes: socialplanner/post.write, users.readonly
  *
  * @param apiKey - Subaccount Private Integration API key
  * @param locationId - GHL location ID
@@ -103,15 +140,25 @@ export async function createSocialPost(
   payload: CreatePostPayload
 ): Promise<CreatePostResult> {
   try {
+    // Step 1: Fetch the GHL user ID (required for post creation)
+    const userId = payload.userId || await fetchGhlUserId(apiKey, locationId)
+
     const body: any = {
       accountIds: payload.accountIds,
       summary: payload.summary,
       media: payload.media,
+      type: 'post',
     }
 
-    // Add scheduled date if provided (otherwise it posts immediately)
+    // Include userId if we got one
+    if (userId) {
+      body.userId = userId
+    }
+
+    // Handle scheduling
     if (payload.scheduledDate) {
-      body.scheduledDate = payload.scheduledDate
+      body.status = 'scheduled'
+      body.scheduleDate = payload.scheduledDate
     }
 
     const response = await axios.post(
@@ -121,6 +168,7 @@ export async function createSocialPost(
     )
 
     const postId = response.data?.id || response.data?.postId || response.data?._id
+      || response.data?.results?.id || response.data?.results?.postId
     return { success: true, postId }
   } catch (error: any) {
     if (error.response?.status === 401) {
