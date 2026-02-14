@@ -91,10 +91,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Determine the best display name and email
-    const businessName = result.business?.name || result.location?.name || null
-    const businessEmail = result.business?.email || result.location?.email || null
-    const businessPhone = result.business?.phone || result.location?.phone || null
+    // Use the Location API data which maps to GHL Business Profile Settings:
+    //   location.name  = "Friendly Business Name"
+    //   location.email = "Business Email"
+    //   location.phone = "Business Phone"
+    const businessName = result.location?.name || null
+    const businessEmail = result.location?.email || null
+    const businessPhone = result.location?.phone || null
 
     // Upsert the integration record
     const integration = await db.ghlIntegration.upsert({
@@ -124,8 +127,8 @@ export async function POST(request: NextRequest) {
     })
 
     // Also update the user's email if it's a placeholder
-    if (user.email?.includes('@ghl.placeholder') && (businessEmail || result.location?.email)) {
-      const realEmail = businessEmail || result.location?.email
+    if (user.email?.includes('@ghl.placeholder') && businessEmail) {
+      const realEmail = businessEmail
       if (realEmail) {
         try {
           await db.user.update({

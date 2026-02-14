@@ -10,16 +10,9 @@ interface GHLLocationInfo {
   phone?: string
 }
 
-interface GHLBusinessInfo {
-  name: string
-  email?: string
-  phone?: string
-}
-
 interface SubaccountValidationResult {
   valid: boolean
   location?: GHLLocationInfo
-  business?: GHLBusinessInfo
   error?: string
 }
 
@@ -36,15 +29,19 @@ function ghlHeaders(apiKey: string) {
 
 /**
  * Validate a GHL subaccount Private Integration API key.
- * Calls the Location API to verify the key works and fetches location info.
- * Then attempts to fetch business info for a richer display name.
+ * Calls the Location API to verify the key works and fetches the Business Profile info.
+ * 
+ * The Location API returns the Business Profile Settings data:
+ *   - name = "Friendly Business Name"
+ *   - email = "Business Email"
+ *   - phone = "Business Phone"
  */
 export async function validateSubaccountApiKey(
   apiKey: string,
   locationId: string
 ): Promise<SubaccountValidationResult> {
   try {
-    // Step 1: Validate the API key by fetching the location
+    // Validate the API key by fetching the location (Business Profile Settings)
     const locationResponse = await axios.get(
       `${GHL_API_BASE}/locations/${locationId}`,
       { headers: ghlHeaders(apiKey) }
@@ -63,31 +60,7 @@ export async function validateSubaccountApiKey(
       phone: locationData.phone || '',
     }
 
-    // Step 2: Try to fetch business info (optional, may fail if scope not granted)
-    let business: GHLBusinessInfo | undefined
-    try {
-      const businessResponse = await axios.get(
-        `${GHL_API_BASE}/businesses/`,
-        {
-          params: { locationId },
-          headers: ghlHeaders(apiKey),
-        }
-      )
-
-      const businesses = businessResponse.data.businesses || []
-      if (businesses.length > 0) {
-        business = {
-          name: businesses[0].name || '',
-          email: businesses[0].email || '',
-          phone: businesses[0].phone || '',
-        }
-      }
-    } catch (bizError: any) {
-      // Business API call failed - not critical, we still have location info
-      console.warn('Could not fetch business info (scope may not be granted):', bizError.message)
-    }
-
-    return { valid: true, location, business }
+    return { valid: true, location }
   } catch (error: any) {
     if (error.response?.status === 401) {
       return { valid: false, error: 'Invalid API key or insufficient permissions. Make sure you have the "locations.readonly" scope enabled.' }
