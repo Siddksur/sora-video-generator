@@ -12,11 +12,15 @@ import { NextRequest, NextResponse } from 'next/server'
  */
 
 // Default GHL domain patterns
+// Includes standard GHL domains and known white-label domains.
+// Add more via GHL_ALLOWED_REFERER_DOMAINS env var (comma-separated).
 const DEFAULT_GHL_DOMAINS = [
   'app.gohighlevel.com',
   'gohighlevel.com',
   'app.leadconnectorhq.com',
   'leadconnectorhq.com',
+  '*.agentgrowthhub.ai',
+  'agentgrowthhub.ai',
 ]
 
 function getGhlDomainPatterns(): string[] {
